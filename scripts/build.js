@@ -38,7 +38,10 @@ var cleanup = function(outDir) {
     console.log("Clean up for existing artifacts ");
     if (fs.existsSync(outDir)) {
         rm('-rf', outDir + "/*");
+    } else {
+        mkdir(outDir);
     }
+
     
     mkdir(outDir + "/openapi");
     mkdir(outDir + "/openapi/paths");    
