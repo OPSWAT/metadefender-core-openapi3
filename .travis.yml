@@ -9,6 +9,6 @@ deploy:
   skip_cleanup: false
   github_token: $GITHUB_TOKEN
   keep_history: true
-  local-dir: out/html
+  script: node gh-deploy  
   on:
     branch: master

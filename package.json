@@ -12,6 +12,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "gh-deploy": "node scripts/gh-pages-deploy.js",
     "start": "node scripts/build.js config/config.yaml",
     "build": "node scripts/build.js config/config.yaml",
     "test": "node scripts/build.js config/config.yaml"
