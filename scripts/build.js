@@ -1,5 +1,6 @@
 'use strict'
 require('shelljs/global');
+const fs = require('fs');
 const path = require('path');
 const utils = require('./utils.js');
 
@@ -35,7 +36,9 @@ var init = function() {
 var cleanup = function(outDir) {
     
     console.log("Clean up for existing artifacts ");
-    rm('-rf', outDir + "/*");
+    if (fs.existsSync(outDir)) {
+        rm('-rf', outDir + "/*");
+    }
     
     mkdir(outDir + "/openapi");
     mkdir(outDir + "/openapi/paths");    
