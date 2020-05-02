@@ -4,7 +4,7 @@ require('shelljs/global');
 
 var main=function() {
     mkdir('../.tmp');
-    cp('out/html/index.html ../.tmp/index.html');
+    cp('out/html/index.html', '../.tmp/index.html');
     
     cd('../.tmp');
     exec('git init');
