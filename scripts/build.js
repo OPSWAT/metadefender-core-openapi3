@@ -77,7 +77,8 @@ var bundleFullSpecFile = function(openAPISpecPath, destFolder, outputName) {
 }
 
 var buildDocs = function(openAPISpecPath, destFolder) {    
-    __exec('node ./node_modules/redoc-cli/index.js bundle -o ' + destFolder + '/index.html ' + openAPISpecPath, "redoc bundle");          
+    __exec('node ./node_modules/redoc-cli/index.js bundle -o ' + destFolder + '/index.html ' + openAPISpecPath, "redoc bundle");   
+    cp(destFolder + '/index.html', './dist');
 }
 
 var generatePDF = function(openAPISpecPath, lang, destFolder) {
@@ -85,7 +86,7 @@ var generatePDF = function(openAPISpecPath, lang, destFolder) {
 }
 
 var generateSDK = function(openAPISpecPath, destFolder, lang) {    
-    __exec('openapi-generator generate -i' + openAPISpecPath + ' -g ' + lang + ' -o ' + destFolder + "/sdks/" + lang, "Generate SDK");
+    __exec('openapi-generator generate -i' + openAPISpecPath + ' -g ' + lang + ' -o ' + destFolder + "/sdks/" + lang, "Generate SDK");    
 }
 
 var generateSDKs = function(openAPISpecPath, destFolder, langs) {
