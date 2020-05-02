@@ -1,0 +1,36 @@
+post:
+  tags:
+    - engines
+  summary: Enable engines
+  description: Enable to use the selected engine on the nodes.
+  operationId: engineEnable
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - name: engineId
+      description: The unique engine identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        example: clamav_7_linux
+  responses:
+    '200':
+      description: Request processed successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:
+                type: string
+                example: Engine is enabled
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

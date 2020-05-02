@@ -1,0 +1,17 @@
+put:
+  tags:
+    - yara
+  summary: Generate Yara package
+  description: Generate a new package based on the new added sources.
+  operationId: yaraPackageGenerate
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/YaraGenerationResponse.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

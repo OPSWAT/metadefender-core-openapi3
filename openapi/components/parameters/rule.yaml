@@ -1,0 +1,8 @@
+name: rule
+description: >
+  Select rule for the analysis, if no header given the default rule will be
+  selected (URL encoded string of rule name)      
+in: header
+required: false
+schema:
+  type: string

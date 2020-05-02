@@ -1,0 +1,36 @@
+get:
+  tags:
+    - yara
+  summary: Get Yara sources
+  description: Retrieve a list of all sources for the Yara Engine.
+  operationId: yaraSourcesGet
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/YaraResponse.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []
+put:
+  tags:
+    - yara
+  summary: Modify Yara sources
+  description: Modify one (or more) of the sources for the Yara Engine.
+  operationId: yaraSourcesPut
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    $ref: ../components/requestBodies/yaraRequestBody.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/YaraResponse.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

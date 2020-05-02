@@ -1,0 +1,213 @@
+openapi: 3.0.0
+info:
+  termsOfService: 'https://onlinehelp.opswat.com/policies/'
+  contact:
+    name: API Support
+    email: feedback@opswat.com
+    url: 'https://github.com/OPSWAT/metadefender-core-openapi3'
+  x-logo:
+    url: >-
+      https://d7umqicpi7263.cloudfront.net/img/product/9c273549-7359-4582-9ead-baef1f3c4dc9/a6bea41b-3a16-45be-9e04-07a5a9616737.png
+    altText: OPSWAT MetaDefender logo
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  title: MetaDefender Core
+  version: v4.18.0
+  description: >
+    ## Developer Guide
+
+    This is the API documentation for *MetaDefender Core Public API*.  If you
+    would like to evaluate or have any questions about this documentation,
+    please contact us via our [Contact Us](https://opswat.com/contact) form. 
+
+    ## How to Interact with MetaDefender Core using REST
+
+    Beginning with MetaDefender Core 4.x, OPSWAT recommends using the JSON-based
+    REST API. The available methods are documented below.
+
+    > _**Note**:_ MetaDefender API doesn't support chunk upload, however is
+    recommended to stream the files to MetaDefender as part of the upload
+    process. 
+
+    ---
+
+    ## File Analysis Process
+
+      MetaDefender's main functionality is to analyze large volumes with a high throughput. Depending on the configuration and licensed technologies, the analysis times can vary. 
+      Below is a brief description of the API integration flow:
+
+      1. Upload a file for analysis (`POST /file`), which returns the `data_id`: [File Analysis](#operation/fileAnalysisPost)). 
+        
+        > _**Note**:_ The performance depends on:      
+        > - number of nodes (scaling)
+        > - number of engines per node
+        > - type of file to be scanned
+        > - Metadefender Core and nodes' hardware
+      
+
+      2. You have 2 ways to retrieve the analysis report: 
+        - **Polling**: Fetch the result with previously received data_id (`GET /file/{data_id}` resource) until scan result belonging to data_id doesn't reach the 100 percent progress_percentage: ( [Fetch processing result](#operation/userLogin))
+      
+        > _**Note**:_ Too many data_id requests can reduce performance. It is enough to just check every few hundred milliseconds.
+        
+        - **Callbackurl**: Specify a callbackurl that will be called once the analysis is complete. 
+
+      3. Retrieve the analysis results anytime after the analysis is completed with hash for files (md5, sha1, sha256) by calling [Fetch processing result](#operation/userLogin). 
+        - The hash can be found in the scan results
+
+      4. Retrieve processed file (sanitized, redacted, watermarked, etc.) after the analysis is complete. 
+        > _**Note**:_ Based on the configured retention policy, the files might be available for retrieval at a later time. 
+
+    ---
+
+    OPSWAT provides some sample codes on [GitHub](https://github.com/OPSWAT) to
+    make it easier to understand how the MetaDefender REST API works.
+externalDocs:
+  description: Official product documentation
+  url: 'https://onlinehelp.opswat.com/corev4'
+tags:
+  - name: auth
+    description: |
+      ### Authentication APIs
+      User authentication is done via username & password. 
+      Additional integrations are available within the product: 
+        - **LDAP** integration
+        - **Active Directory** integration
+        - **SAML** integration (starting with v4.18.0)
+  - name: analysis
+    description: >
+      ### File analysis APIs
+
+      Submit each file to MetaDefender individually or group them in batches. 
+      Each file submission will return a `data_id` which will be the unique
+      identifier used to retrieve the analysis results. 
+
+      **Important**: Even though one file is being submitted, if MetaDefender is
+      configured to extract the files, all compound file types (archives, Office
+      documents, etc.) will be extracted and each file within will be analyzed
+      as a separate entry.
+        - This means that if you submit an archive with 100 files in it, MetaDefender will process 101 files: original file as it is and each of the 100 child files 
+          - Note that by opening the files, detection ratio can increase even by 30%. 
+
+      > _**Note**:_ MetaDefender API doesn't support chunk upload. You shouldn't
+      load the file in memory, is recommended to stream the files to
+      MetaDefender as part of the upload process. 
+  - name: stats
+    description: Health check and statistics about MetaDefender usage.
+  - name: yara
+    description: Yara engine configuration and source management APIs.
+  - name: analysisResultModel
+    x-displayName: Analysis Result
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/AnalysisResult" />
+  - name: fileInfoModel
+    x-displayName: File Information
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/FileInformation" />
+  - name: metascanReportModel
+    x-displayName: Metascan Report
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/MetascanReport" />
+x-tagGroups:
+  - name: User
+    tags:
+      - auth
+  - name: File Analysis
+    tags:
+      - analysis
+      - batch
+  - name: Admin
+    tags:
+      - admin
+      - config
+      - yara
+      - engines
+      - stats
+  - name: Models
+    tags:
+      - analysisResultModel
+      - fileInfoModel
+      - metascanReportModel
+paths:
+  /login:
+    $ref: paths/login.yaml
+  /logout:
+    $ref: paths/logout.yaml
+  /admin/license/activation:
+    $ref: paths/admin@license@activation.yaml
+  /admin/license:
+    $ref: paths/admin@license.yaml
+  /admin/config/auditlog:
+    $ref: paths/admin@config@auditlog.yaml
+  /admin/config/quarantine:
+    $ref: paths/admin@config@quarantine.yaml
+  /admin/config/sanitize:
+    $ref: paths/admin@config@sanitize.yaml
+  /admin/config/scanhistory:
+    $ref: paths/admin@config@scanhistory.yaml
+  /admin/config/session:
+    $ref: paths/admin@config@session.yaml
+  /admin/config/update:
+    $ref: paths/admin@config@update.yaml
+  /admin/config/skip:
+    $ref: paths/admin@config@skip.yaml
+  '/admin/engine/{engineId}/pin':
+    $ref: 'paths/admin@engine@{engineId}@pin.yaml'
+  '/admin/engine/{engineId}/unpin':
+    $ref: 'paths/admin@engine@{engineId}@unpin.yaml'
+  '/admin/engine/{engineId}/enable':
+    $ref: 'paths/admin@engine@{engineId}@enable.yaml'
+  '/admin/engine/{engineId}/disable':
+    $ref: 'paths/admin@engine@{engineId}@disable.yaml'
+  /admin/import:
+    $ref: paths/admin@import.yaml
+  /admin/user:
+    $ref: paths/admin@user.yaml
+  /admin/role:
+    $ref: paths/admin@role.yaml
+  /user/changepassword:
+    $ref: paths/user@changepassword.yaml
+  /admin/config/yara/sources:
+    $ref: paths/admin@config@yara@sources.yaml
+  /yara/package:
+    $ref: paths/yara@package.yaml
+  /yara/generate:
+    $ref: paths/yara@generate.yaml
+  /file:
+    $ref: paths/file.yaml
+  '/file/{data_id}':
+    $ref: 'paths/file@{data_id}.yaml'
+  '/file/{data_id}/cancel':
+    $ref: 'paths/file@{data_id}@cancel.yaml'
+  /file/rules:
+    $ref: paths/file@rules.yaml
+  '/file/converted/{data_id}':
+    $ref: 'paths/file@converted@{data_id}.yaml'
+  /file/batch:
+    $ref: paths/file@batch.yaml
+  '/file/{batchId}/cancel':
+    $ref: 'paths/file@{batchId}@cancel.yaml'
+  '/file/batch/{batchId}/close':
+    $ref: 'paths/file@batch@{batchId}@close.yaml'
+  '/file/batch/{batchId}':
+    $ref: 'paths/file@batch@{batchId}.yaml'
+  '/file/batch/{batchId}/certificate':
+    $ref: 'paths/file@batch@{batchId}@certificate.yaml'
+  /version:
+    $ref: paths/version.yaml
+  /stat/engines:
+    $ref: paths/stat@engines.yaml
+  /stat/nodes:
+    $ref: paths/stat@nodes.yaml
+servers:
+  - url: 'http://localhost:8008'
+components:
+  securitySchemes:
+    apikey:
+      description: >
+        Generated `session_id` from [Login](#operation/userLogin) call can be
+        used as an `apikey` for API calls that require authentication.
+      type: apiKey
+      name: apikey
+      in: header

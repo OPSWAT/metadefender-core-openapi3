@@ -1,0 +1,38 @@
+post:
+  tags:
+    - batch
+  summary: Cancel Batch
+  description: >-
+    When cancelling a batch, the connected analysis that are still in progress
+    will be cancelled also. 
+
+
+    The cancelled batch will be closed.      
+  operationId: batchCancel
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - $ref: ../components/parameters/batchId.yaml
+  responses:
+    '200':
+      description: Batch cancelled.
+      content:
+        application/json:
+          schema:
+            type: object
+          example:
+            <<batch_id>>: cancelled
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '404':
+      description: Batch not found (invalid id)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              err:
+                type: string
+    '500':
+      $ref: ../components/responses/Error500.yaml

@@ -1,0 +1,21 @@
+post:
+  tags:
+    - license
+  summary: Activate license
+  operationId: licenseActivation
+  description: >-
+    This API initiates an online activation of the deployment.  In case of
+    error, check the application logs for more details.
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    $ref: ../components/requestBodies/licenseActivated.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/Success200.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

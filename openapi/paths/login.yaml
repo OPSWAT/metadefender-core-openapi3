@@ -1,0 +1,49 @@
+post:
+  tags:
+    - auth
+  summary: Login
+  description: Initiate a new session. Required for using protected REST APIs.
+  operationId: userLogin
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            user:
+              type: string
+              description: Username
+            password:
+              type: string
+              description: User's password
+        example:
+          user: admin
+          password: admin
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/UserLogin.yaml
+          example:
+            session_id: a5dd6114dbd14a3b8f4577b7b54e6b0a
+      links:
+        GetAPIKey:
+          $ref: ../components/links/GetAPIKey.yaml
+    '403':
+      description: Invalid credentials
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              err:
+                type: string
+                description: >-
+                  <error message> will describe the incident. More details would
+                  be logged in MetaDefender Core logs
+          example:
+            err: Failed to login
+    '500':
+      $ref: ../components/responses/Error500.yaml

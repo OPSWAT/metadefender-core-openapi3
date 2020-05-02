@@ -1,0 +1,35 @@
+description: Scan report per each engine.
+type: object
+properties:
+  def_time:
+    description: The database definition time for this engine
+    type: string
+    example: '2020-03-11T11:08:00.000Z'
+  eng_id:
+    description: The  unique identification string for the engine
+    type: string
+    example: clamav_1_windows
+  location:
+    description: Where this engine is deployed (local/remote).
+    type: string
+    example: local
+  scan_result_i:
+    description: Scan result as index in the Processing Results table
+    type: integer
+    example: 0
+  scan_time:
+    description: The time elapsed during scan with this engine (in milliseconds).
+    type: integer
+    example: 336
+  threat_found:
+    description: >-
+      The threat name, IF scan result is Infected or Suspicious. Otherwise empty
+      string or error message from the engine.
+    type: string
+    example: ''
+  wait_time:
+    description: >-
+      Time elapsed between sending file to node and receiving the result from
+      the engine (in milliseconds).
+    type: integer
+    example: 3

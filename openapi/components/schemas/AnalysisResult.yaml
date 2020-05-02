@@ -1,0 +1,123 @@
+type: object
+properties:
+  data_id:
+    description: data identifier of the requested file
+    type: string
+    example: 8101abae27be4d63859c55d9e0ed0135
+  dlp_info:
+    $ref: ./DLPResponse.yaml
+  file_info:
+    $ref: ./FileInformation.yaml
+  process_info:
+    description: Processing information
+    type: object
+    properties:
+      blocked_reason:
+        description: Provides the reason why the file is blocked (if so).
+        type: string
+        example: Sensitive Data Found
+      file_type_skipped_scan:
+        description: >-
+          Indicates if the input file's detected type was configured to skip
+          scanning.
+        type: boolean
+        example: false
+      outdated_data:
+        description: >
+          array of flags - if occur - describing outdated data in the result,
+          these can be
+            * enginedefinitions: at least one of the AV engines the item was scanned with has a newer definition database
+            * configuration: the process' rule - or any item used by the rule - was modified since the item was processed
+            * sanitization: if item was sanitized this flag notifies that the sanitization information regarding this result is outdated, meaning the sanitized item is no longer available              
+        type: array
+        items:
+          type: string
+          enum:
+            - enginedefinition
+            - configuration
+            - sanitization
+        example:
+          - enginedefinition
+          - configuration
+          - sanitization
+      processing_time:
+        description: >-
+          Total time elapsed during processing file on the node (in
+          milliseconds).
+        type: integer
+        example: 4804
+      profile:
+        description: The used rule name.
+        type: string
+        example: File process
+      progress_percentage:
+        description: Percentage of processing completed (from 1-100).
+        type: integer
+        example: 100
+      queue_time:
+        description: >-
+          Total time elapsed while the file waits in the queue (in
+          milliseconds).
+        type: integer
+        example: 321
+      result:
+        description: >-
+          The final result of processing the file (Allowed / Blocked /
+          Processing).
+        type: string
+        example: Blocked
+      user_agent:
+        description: Identifier for the REST Client that calls the API.
+        type: string
+        example: webscan
+      username:
+        description: User identifier who submitted scan request earlier.
+        type: string
+        example: LOCAL/admin
+      verdicts:
+        description: Aggregated list of potential issues.
+        type: array
+        items:
+          type: string
+        example:
+          - Sensitive Data Found
+      post_processing:
+        description: >-
+          Contains information about result of sanitization process and any
+          action done after finalizing the process using Post Actions.
+        type: object
+        properties:
+          actions_failed:
+            description: >-
+              Empty string if no action failed or list of failed actions,
+              separated by "|".
+            type: string
+            example: Sanitization Failed | PAscript failed
+          actions_ran:
+            description: >-
+              List of successful actions, separated by "|". Empty string if
+              otherwise.
+            type: string
+            example: Sanitized | PAscript
+          converted_destination:
+            description: Contains the name of the sanitized file.
+            type: string
+            example: OPSWAT_Proactive_DLP_CCN_sanitized.pdf
+          converted_to:
+            description: Contains target type name of sanitization.
+            type: string
+            example: ''
+          copy_move_destination:
+            description: Contains target type name of sanitization.
+            type: string
+            example: ''
+          sanitization_details:
+            description: Contains target type name of sanitization.
+            allOf:
+              - $ref: ./DeepCDRDetails.yaml
+  scan_results:
+    $ref: ./MetascanReport.yaml
+  vulnerability_info:
+    $ref: ./VulnerabilityResponse.yaml
+  yara:
+    $ref: ./YaraReport.yaml

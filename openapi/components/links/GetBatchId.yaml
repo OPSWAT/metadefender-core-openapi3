@@ -1,0 +1,5 @@
+operationId: getBatchId
+parameters:
+  apikey: '$response.body#/batch_id'
+description: |
+  The batch identifier used to submit files in the batch and to close the batch.

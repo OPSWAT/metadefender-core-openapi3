@@ -1,0 +1,15 @@
+allOf:
+  - $ref: ./NewUserRoleRequest.yaml
+  - type: object
+    required:
+      - editable
+      - id
+    properties:
+      editable:
+        description: If the role can be altered or not.
+        type: boolean
+        example: true
+      id:
+        description: Internal used identifier
+        type: integer
+        example: 6

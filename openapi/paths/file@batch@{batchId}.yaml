@@ -1,0 +1,24 @@
+get:
+  tags:
+    - batch
+  summary: Status of Batch Analysis
+  description: Retrieve status report for the entire batch
+  operationId: batchStatus
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - $ref: ../components/parameters/batchId.yaml
+  responses:
+    '200':
+      description: Batch progress paginated report (50 entries/page).
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BatchResponse.yaml
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '404':
+      $ref: ../components/responses/Error404.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml

@@ -1,0 +1,41 @@
+description: Result of the scanning process.
+type: object
+properties:
+  data_id:
+    description: Data ID of the requested file
+    type: string
+    example: 8101abae27be4d63859c55d9e0ed0135
+  progress_percentage:
+    description: Track analysis progress until reaches 100.
+    type: integer
+    example: 100
+  scan_all_result_a:
+    description: The overall scan result as string
+    allOf:
+      - $ref: ./ProcessingResultsStringEnum.yaml
+    example: Sensitive Data Found
+  scan_all_result_i:
+    description: The overall scan result as index in the Processing Results table.
+    allOf:
+      - $ref: ./ProcessingResultsIndexEnum.yaml
+    example: 20
+  start_time:
+    description: Timestamp when the scanning process starts.
+    type: string
+    example: '2020-03-12T08:37:05.427Z'
+  total_avs:
+    description: Total number of scanning engines used as part of this analysis.
+    type: integer
+    example: 1
+  total_time:
+    description: Total time elapsed during scan (in milliseconds).
+    type: integer
+    example: 4804
+  scan_details:
+    description: >-
+      Scan results for each antivirus engine. The key is the name of the
+      antivirus engine and the value is the result of the antivirus engine
+    type: object
+    properties:
+      ClamAV:
+        $ref: ./AVEngineScanReport.yaml

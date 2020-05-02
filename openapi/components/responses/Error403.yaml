@@ -1,0 +1,11 @@
+description: Invalid user information or Not Allowed
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        err:
+          type: string
+          description: Error reason
+    example:
+      err: Access denied

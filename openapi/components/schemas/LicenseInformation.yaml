@@ -1,0 +1,43 @@
+description: >-
+  Information about the licensed product (product type, number of activations,
+  deploymentId, expiration date and days left)
+type: object
+properties:
+  days_left:
+    type: integer
+    description: Number of days left before expiration
+  deployment:
+    type: string
+    description: Unique identifier which is maps the current deployment to the activation
+  expiration:
+    type: string
+    description: Expiration date in MM/DD/YYYY format.
+  licensed_engines:
+    type: array
+    items:
+      type: string
+    description: List of engine/module identifiers that have been licensed
+  max_node_count:
+    type: string
+    description: >-
+      Total number of deployed MetaDefender Nodes attached to this MetaDefender
+      Core instance.
+  online_activated:
+    type: boolean
+    description: Track online/offline activation mode
+  product_id:
+    type: string
+    description: Official MetaDefender base SKU licensed.
+  product_name:
+    type: string
+    description: Official MetaDefender base product name licensed.
+example:
+  days_left: 3731
+  deployment: MSCL00000000000000000000000000000000
+  expiration: 09/30/2026
+  licensed_engines: '*'
+  licensed_to: 'OPSWAT, Inc.'
+  max_node_count: '10'
+  online_activated: true
+  product_id: MSCL-4-unlimited
+  product_name: Metadefender Core 5 Linux

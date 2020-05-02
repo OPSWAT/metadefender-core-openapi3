@@ -1,0 +1,42 @@
+description: User object in MetaDefender.
+type: object
+properties:
+  apikey:
+    description: Associated apikey with this user
+    type: string
+    example: b8a4b52f19de88e365aa4f7e403fa91b352f
+  directory_id:
+    description: To which User Directories belongs to (LOCAL/System/etc.)
+    type: integer
+    example: 1
+  display_name:
+    description: Which is the name showed in the Management Console
+    type: string
+    example: jsmith
+  email:
+    description: User's email address
+    type: string
+    example: john.smith@company.com
+  name:
+    description: User's full name
+    type: string
+    example: John Smith
+  roles:
+    description: A list of roles attached to this user
+    type: array
+    example:
+      - '1'
+      - '2'
+      - '3'
+      - ...
+    items:
+      type: string
+  ui_settings:
+    description: Configuration of Management Console for this user.
+    type: object
+    example:
+      refresh_rate:
+        value: 30
+      time_period:
+        value: 24
+        unitsInHour: 1

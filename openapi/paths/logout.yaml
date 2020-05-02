@@ -1,0 +1,31 @@
+post:
+  tags:
+    - auth
+  summary: Logout
+  description: Destroy session for not using protected REST APIs.
+  operationId: userLogout
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          example:
+            response: Logout success
+    '400':
+      description: OK
+      content:
+        application/json:
+          example:
+            err: Logout error
+    '403':
+      description: Invalid user information.
+      content:
+        application/json:
+          example:
+            response: Access denied
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

@@ -1,0 +1,44 @@
+put:
+  tags:
+    - config
+  summary: Sanitized files clean up
+  operationId: configSanitizedRepo
+  description: |
+    Setting sanitized files clean up time (clean up records older than). 
+    > _**Note**_:The clean up range is defined in `minutes`. 
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            maxage:
+              description: >-
+                The number of minutes of data retention. Anything older than
+                this number will be deleted.
+              type: integer
+              example: 360
+  responses:
+    '200':
+      description: Request processed successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              maxage:
+                description: >-
+                  The number of minutes of data retention. Anything older than
+                  this number will be deleted.
+                type: integer
+                example: 360
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

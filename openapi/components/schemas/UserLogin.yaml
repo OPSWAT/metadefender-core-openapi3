@@ -1,0 +1,7 @@
+type: object
+required:
+  - session_id
+properties:
+  session_id:
+    type: string
+    description: The apikey used to make API calls which requires authentication

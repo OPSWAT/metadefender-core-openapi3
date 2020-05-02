@@ -1,0 +1,35 @@
+description: basic information of the scanned file
+type: object
+properties:
+  display_name:
+    description: The filename reported via `filename` header.
+    type: string
+    example: OPSWAT_Proactive_DLP_CCN.pdf
+  file_size:
+    description: Total file size in bytes.
+    type: integer
+    example: 75906
+  file_type:
+    description: The filetype using mimetype.
+    type: string
+    example: application/pdf
+  file_type_description:
+    description: The filetype in human readable format.
+    type: string
+    example: Adobe Portable Document Format
+  md5:
+    description: File's MD5 hash.
+    type: string
+    example: c4863c8ce44fb7ae84eb48c9b78f8b5e
+  sha1:
+    description: File's SHA1 hash.
+    type: string
+    example: a33c72a996a9603d479e3dff3d23bf619c975fbe
+  sha256:
+    description: File's SHA256 Hash.
+    type: string
+    example: b9fdc10b47950b9e503ef4dc0ef42d28e7c37ccd749d4a5dcd7d9b3218996b7f
+  upload_timestamp:
+    description: The timestamp when file was successfully uploaded to MetaDefender.
+    type: string
+    example: '2020-03-12T08:37:05.412Z'

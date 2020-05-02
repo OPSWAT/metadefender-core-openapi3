@@ -1,0 +1,7 @@
+operationId: getAPIkey
+parameters:
+  apikey: '$response.body#/session_id'
+description: >
+  Generated `session_id` from login call can be used as an `apikey` for API
+  calls that require authentication.  This can also be used for file submission,
+  if identifying who is submitting the file is enforced in the workflow(s).'

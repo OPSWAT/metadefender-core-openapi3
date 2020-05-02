@@ -1,0 +1,8 @@
+allOf:
+  - $ref: ./UserResponse.yaml
+  - type: object
+    properties:
+      password:
+        description: The user's password
+        type: string
+        example: 'HG&B*!C!KLEF#RH*#*(($YB'

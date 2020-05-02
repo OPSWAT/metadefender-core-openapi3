@@ -1,0 +1,30 @@
+put:
+  tags:
+    - config
+  summary: Modules Update Source and Frequency
+  description: |
+    Setting update frequency for all modules and engines. 
+    > _**Note**_:The clean up range is defined in `minutes`. 
+  operationId: configUpdate
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/AdminConfigUpdate.yaml
+  responses:
+    '200':
+      description: Request processed successfully
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AdminConfigUpdate.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

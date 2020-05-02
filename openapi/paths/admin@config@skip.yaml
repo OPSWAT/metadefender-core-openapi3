@@ -1,0 +1,46 @@
+get:
+  tags:
+    - config
+  summary: Get 'skip by hash' list
+  description: Get the list of hashes whitelisted or blacklisted.
+  operationId: configGetSkipHash
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/SkipListResponse.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '404':
+      $ref: ../components/responses/Error404.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []
+put:
+  tags:
+    - config
+  summary: Modify 'skip by hash' list
+  description: >
+    Modify one (or more) of the sources for the Yara Engine.
+
+    The request body containing whitelist's rules in array under "whitelist"
+    key; Each object in the array represents a whitelist: comment: same comment
+    for detailed more information this whitelist settings. engines: containing
+    engine id's strings in array hash: md5, sha1 or sha256 hash
+  operationId: configUpdateSkipHash
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    $ref: ../components/requestBodies/skipListRequestBody.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/SkipListResponse.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '404':
+      $ref: ../components/responses/Error404.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

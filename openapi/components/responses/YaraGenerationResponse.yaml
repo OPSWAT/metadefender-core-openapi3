@@ -1,0 +1,50 @@
+description: Request processed successfully.
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        status:
+          description: Current status of generating the package.
+          type: string
+          enum:
+            - idle
+            - error
+            - inprogress
+          example: idle
+        start_time:
+          description: 'Used only when status is inprogress, otherwise its empty'
+          type: string
+          example: ''
+        issues:
+          description: >-
+            Stores a map of issues. Each key represents the according source,
+            except "general", which contains general errors occurred during the
+            generation process
+          type: object
+          properties:
+            general:
+              description: Contains general errors occurred during the generation process
+              type: array
+              items:
+                type: object
+                properties:
+                  severity:
+                    type: string
+                    example: warning
+                  message:
+                    type: string
+                    example: >-
+                      Error while extracting network source. Can not open
+                      destination.
+            source:
+              type: array
+              items:
+                type: object
+                properties:
+                  severity:
+                    type: string
+                    example: warning
+                  message:
+                    type: string
+                    example: The given local source does not exists.

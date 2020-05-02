@@ -1,0 +1,30 @@
+post:
+  tags:
+    - admin
+  summary: Create user
+  description: ''
+  operationId: userCreate
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/UserRequest.yaml
+  responses:
+    '200':
+      description: Request processed successfully.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/UserResponse.yaml
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

@@ -1,0 +1,12 @@
+description: Request processed successfully
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        cleanuprange:
+          description: >-
+            The number of hours of data retention. Anything older than this
+            number will be deleted.
+          type: integer
+          example: 24

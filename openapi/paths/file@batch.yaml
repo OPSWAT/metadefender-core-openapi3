@@ -1,0 +1,29 @@
+post:
+  tags:
+    - batch
+  summary: Initiate Batch
+  description: Create a new batch and retrieve the batch_id
+  operationId: batchCreate
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - $ref: ../components/parameters/rule.yaml
+    - $ref: ../components/parameters/useragent.yaml
+    - $ref: ../components/parameters/userdata.yaml
+  responses:
+    '200':
+      description: Batch created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BatchId.yaml
+          example:
+            batch_id: 74c85f475147439bac4d33b181853923
+      links:
+        BatchId:
+          $ref: ../components/links/GetBatchId.yaml
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml

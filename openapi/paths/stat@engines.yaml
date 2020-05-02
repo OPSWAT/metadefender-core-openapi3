@@ -1,0 +1,88 @@
+get:
+  tags:
+    - stats
+  summary: Engines Status
+  description: The response is an array of engines with database information.
+  operationId: enginesStatus
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      description: An array with all the engines and their details.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                active:
+                  description: If used by at least one engine
+                  type: boolean
+                  example: true
+                def_time:
+                  description: The database definition time for this engine
+                  type: string
+                  example: '2020-04-17T02:37:05.000Z'
+                download_progress:
+                  description: The percentage progress of download
+                  type: integer
+                  example: 100
+                download_time:
+                  description: When this engine downloaded from the update server.
+                  type: string
+                  example: '2020-04-17T08:17:22.810Z'
+                eng_id:
+                  description: Engine internal ID
+                  type: string
+                  example: clamav_1_linux
+                eng_name:
+                  description: Engine name
+                  type: string
+                  example: ClamAV
+                eng_type:
+                  description: Engine type in human readable form
+                  type: string
+                  example: Bundled engine
+                eng_ver:
+                  description: >-
+                    Engine's version (format differs from one engine to
+                    another).
+                  type: string
+                  example: 3.0-43
+                engine_type:
+                  description: |
+                    Engine's type: 
+                      * av
+                      * archive
+                      * filetype
+                  type: string
+                  enum:
+                    - av
+                    - archive
+                    - filetype
+                  example: av
+                state:
+                  description: |
+                    Status of the engine:
+                      * downloading
+                      * downloaded
+                      * staging
+                      * production
+                      * removed
+                      * temporary failed
+                      * permanently failed
+                      * content invalid
+                      * download failed
+                  type: string
+                  enum:
+                    - downloading
+                    - downloaded
+                    - staging
+                    - production
+                    - removed
+                    - temporary failed
+                    - permanently failed
+                    - content invalid
+                    - download failed
+                  example: production

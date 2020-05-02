@@ -1,0 +1,52 @@
+post:
+  tags:
+    - engines
+  summary: Unpin engine to prevent auto-updates
+  description: Unpin engines so automatic updates will be applied on them.
+  operationId: engineUnpin
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - name: type
+      description: |-
+        Unpin engine or database to applying automatic updates on it.
+        (If it is not defined both engine and database will be unpinned.)
+      in: header
+      required: false
+      schema:
+        type: string
+        enum:
+          - engine
+          - database
+        example: engine
+    - name: engineId
+      description: The unique engine identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        example: clamav_7_linux
+  responses:
+    '200':
+      description: Request processed successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:
+                type: string
+                enum:
+                  - Engine is unpinned
+                  - Database is unpinned
+                  - Both engine and database are unpinned
+                example: Both engine and database are unpinned
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

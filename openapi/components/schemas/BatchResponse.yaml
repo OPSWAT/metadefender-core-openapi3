@@ -1,0 +1,168 @@
+description: The response for a Batch status request.
+type: object
+properties:
+  batch_files:
+    description: aaaaa
+    type: object
+    properties:
+      batch_count:
+        description: How many files/entries in the batch.
+        type: integer
+        example: 4
+      files_in_batch:
+        description: The list of files in this batch.
+        type: array
+        items:
+          type: object
+          properties:
+            data_id:
+              description: Unique identifer for the file.
+              type: string
+              example: 24c8b5dadd48445989ac3431544fdc34
+            detected_by:
+              description: Total number of engines that detected this file.
+              type: integer
+              example: 4
+            display_name:
+              description: The filename reported via `filename` header.
+              type: string
+              example: eicar.com
+            file_size:
+              description: Total file size in bytes.
+              type: integer
+              example: 68
+            file_type:
+              description: The filetype using mimetype.
+              type: string
+              example: application/octet-stream
+            file_type_description:
+              description: The filetype in human readable format.
+              type: string
+              example: EICAR virus test files
+            process_info:
+              description: The analysis summary
+              type: object
+              properties:
+                blocked_reason:
+                  description: Provides the reason why the file is blocked (if so).
+                  type: string
+                  example: Infected
+                progress_percentage:
+                  description: Percentage of processing completed (from 1-100).
+                  type: integer
+                  example: 100
+                result:
+                  description: >-
+                    The final result of processing the file (Allowed / Blocked /
+                    Processing).
+                  type: string
+                  example: Blocked
+                verdicts:
+                  description: Aggregated list of potential issues.
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - Infected
+            progress_percentage:
+              description: Track analysis progress until reaches 100.
+              type: integer
+              example: 100
+            scan_all_result_a:
+              description: The overall scan result as string
+              allOf:
+                - $ref: ./ProcessingResultsStringEnum.yaml
+              example: Infected
+            scan_all_result_i:
+              description: >-
+                The overall scan result as index in the Processing Results
+                table.
+              allOf:
+                - $ref: ./ProcessingResultsIndexEnum.yaml
+              example: 1
+            scanned_with:
+              description: The total number of engines used to analyze this file.
+              type: integer
+              example: 4
+      first_index:
+        description: The starting index in the batch. Used for pagination.
+        type: integer
+        example: 0
+      page_size:
+        description: The number of entries per page.
+        type: integer
+        example: 50
+  batch_id:
+    description: The batch unique identifer
+    type: string
+    example: b7cc760038324b02908a5c111cb1563d
+  is_closed:
+    description: The batch status (open/close).
+    type: boolean
+    example: false
+  process_info:
+    description: Overall batch process result
+    type: object
+    properties:
+      blocked_reason:
+        description: Provides the reason why the file is blocked (if so).
+        type: string
+        example: Infected
+      file_type_skipped_scan:
+        description: >-
+          Indicates if the input file's detected type was configured to skip
+          scanning.
+        type: boolean
+        example: false
+      profile:
+        description: The used rule name.
+        type: string
+        example: File process
+      result:
+        description: >-
+          The final result of processing the file (Allowed / Blocked /
+          Processing).
+        type: string
+        example: Blocked
+      user_agent:
+        description: Identifier for the REST Client that calls the API.
+        type: string
+        example: mdicapserver
+      username:
+        description: User identifier who submitted scan request earlier.
+        type: string
+        example: LOCAL/admin
+  scan_results:
+    description: Metascan analysis result.
+    type: object
+    properties:
+      batch_id:
+        description: The batch unique identifer
+        type: string
+        example: b7cc760038324b02908a5c111cb1563d
+      scan_all_result_a:
+        description: The overall scan result as string
+        allOf:
+          - $ref: ./ProcessingResultsStringEnum.yaml
+        example: Infected
+      scan_all_result_i:
+        description: The overall scan result as index in the Processing Results table.
+        allOf:
+          - $ref: ./ProcessingResultsIndexEnum.yaml
+        example: 1
+      start_time:
+        description: Timestamp when the scanning process starts.
+        type: string
+        example: '2020-03-12T08:37:05.427Z'
+      total_avs:
+        description: Total number of scanning engines used as part of this analysis.
+        type: integer
+        example: 0
+      total_time:
+        description: Total time elapsed during scan (in milliseconds).
+        type: integer
+        example: 18403
+  user_data:
+    description: Metadata submitted at batch creation.
+    type: string
+    example: 'http://localhost:8008/'

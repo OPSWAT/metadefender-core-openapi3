@@ -1,0 +1,11 @@
+description: Requests resource was not found.
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        err:
+          type: string
+          description: Error reason
+    example:
+      err: Not found

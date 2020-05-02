@@ -1,0 +1,50 @@
+description: An entry detailing the match.
+type: object
+properties:
+  after:
+    description: The context after the matched data.
+    type: string
+    example: 123 Cherry Lane st.
+  before:
+    description: The context before the matched data.
+    type: string
+    example: Card Number
+  certainty:
+    description: |
+      The text version of "certainty_score", possible values:
+        * `Very Low`
+          * `Low`
+          * `Medium`
+          * `High`
+          * `Very High`
+    type: string
+    enum:
+      - Very Low
+      - Low
+      - Medium
+      - High
+      - Very High
+    example: Very High
+  certainty_score:
+    description: >
+      Is  defined by the relevance of the given hit in its context. It is
+      calculated based on multiple factors such as the number of digits,
+      possible values: [0-100]
+    type: integer
+    example: 100
+  hit:
+    description: The matched data.
+    type: string
+    example: XXXXXXXXXXXXXXX1938
+  isRedacted:
+    description: If file was redacted or not.
+    type: boolean
+    example: false
+  severity:
+    description: |
+      (NOTE: this field is deprecated): can be 0 (detected) or 1 (suspicious).
+    type: integer
+    enum:
+      - 0
+      - 1
+    example: 0

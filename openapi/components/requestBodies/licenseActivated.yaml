@@ -1,0 +1,22 @@
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        activationKey:
+          type: string
+          description: >-
+            The license key provided by OPSWAT (either eval or production
+            license).
+        quantity:
+          type: integer
+          description: The number of MetaDefender nodes attached to this instance.
+        comment:
+          type: string
+          description: >-
+            Metadata field allowing you to provide relevant identification
+            information for this instance.
+    example:
+      activationKey: xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx
+      quantity: '1'
+      comment: MetaDefender Core Server 001

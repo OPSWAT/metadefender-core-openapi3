@@ -1,0 +1,5 @@
+description: A list of all skip/white/black-listed hashes.
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/SkipList.yaml

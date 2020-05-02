@@ -1,0 +1,34 @@
+get:
+  tags:
+    - analysis
+  summary: Download Sanitized Files
+  description: |
+    Retrieve sanitized file based on the `data_id`
+  operationId: sanitizedFile
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - name: data_id
+      in: path
+      required: true
+      description: >-
+        The data_id comes from the result of `Analyze a file`. In case of
+        sanitizing the content of an archive, the data_id of contained file can
+        be found in `Fetch analysis result`.
+      schema:
+        type: string
+      example: 8101abae27be4d63859c55d9e0ed0135
+  responses:
+    '200':
+      description: Returns the sanitized content.
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+          example: Sanitized(Hello World!)
+    '404':
+      $ref: ../components/responses/Error404.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml

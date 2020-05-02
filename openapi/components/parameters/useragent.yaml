@@ -1,0 +1,8 @@
+name: user_agent
+description: >
+  user_agent header used to identify (and limit) access to a particular rule.
+  For rule selection, `rule` header should be used.
+schema:
+  type: string
+in: header
+required: false

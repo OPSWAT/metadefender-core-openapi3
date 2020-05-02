@@ -1,0 +1,56 @@
+description: API object for /admin/config/update
+type: object
+properties:
+  autoupdateperiod:
+    description: The interval (in minutes) for checking for new updates.
+    type: integer
+    example: 240
+  deleteafterimport:
+    description: >-
+      If you want to clean the pickup folder after the updates have been
+      applied.
+    type: boolean
+    example: true
+  disabledupdate:
+    description: Lockdown a time interval when the engines are not allowed to update.
+    type: array
+    items:
+      description: >
+        The JSON below mean that from Friday to Sunday (week starts on Monday
+        (1), ends on Sunday (7)) from 8:00 to 16:00 you do not want to
+        distribute packages.
+
+        <i>From and to is the distance in minutes from 0:00 (8:00 → 480 minutes,
+        16:00 → 960 minutes)<i>
+      type: object
+      properties:
+        days:
+          description: >-
+            A particular day (index of the week) or a defined interval (Fri-Sun
+            -> 5-7)
+          type: string
+          example: 5-7
+        from:
+          description: 'When to start the lockdown, expressed in minutes (8 AM=480)'
+          type: integer
+          example: 480
+        to:
+          description: 'When to end the lockdown, expressed in minutes (4 PM=960)'
+          type: integer
+          example: 960
+  pickupfolder:
+    description: The folder where MetaDefender will look for the new engine files.
+    type: string
+    example: /tmp/core-data/update_autoadd
+  source:
+    description: |
+      Define where the updates will be loaded from. <p> This can be either:
+        * `internet` -> if selected, will check for new updates every `autoupdateperiod` minutes
+        * `folder` -> make sure that MetaDefender has access/permission to that folder
+        * `manual` -> requires manually uploading the packages in Inventory > Modules > Upload package.
+    type: string
+    enum:
+      - internet
+      - folder
+      - manual
+    example: internet

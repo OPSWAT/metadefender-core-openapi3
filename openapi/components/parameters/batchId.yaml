@@ -1,0 +1,6 @@
+name: batchId
+description: The batch identifier used to submit files in the batch and to close the batch.
+in: path
+required: true
+schema:
+  type: string

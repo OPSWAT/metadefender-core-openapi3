@@ -1,0 +1,23 @@
+description: API object for /admin/config/session
+type: object
+properties:
+  absoluteSessionTimeout:
+    description: >-
+      The interval (in milliseconds) for overall session length timeout
+      (regardless of activity).
+    type: integer
+    example: 0
+  allowCrossIpSessions:
+    description: Allow requests from the same user to come from different IPs.
+    type: boolean
+    example: true
+  allowDuplicateSession:
+    description: Allow same user to have multiple active sessions.
+    type: boolean
+    example: true
+  sessionTimeout:
+    description: >-
+      The interval (in milliseconds) for the user's session timeout, based on
+      last activity. Timer starts after the last activity for the apikey.
+    type: integer
+    example: 300000

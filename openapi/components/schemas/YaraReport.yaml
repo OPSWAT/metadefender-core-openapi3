@@ -1,0 +1,10 @@
+description: Information on data that matched yara rules
+type: object
+properties:
+  hits:
+    description: >-
+      detailed results that contains the name of the matched rules and a
+      description for each.
+    type: object
+  verdict:
+    $ref: ./ScanResultEnum.yaml

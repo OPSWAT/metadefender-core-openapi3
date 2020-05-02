@@ -1,0 +1,26 @@
+post:
+  tags:
+    - batch
+  summary: Close Batch
+  description: >-
+    The batch will be closed and files can no longer can be added to the current
+    batch.      
+  operationId: batchClose
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - $ref: ../components/parameters/batchId.yaml
+  responses:
+    '200':
+      description: Batch successfully closed.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BatchResponse.yaml
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '404':
+      $ref: ../components/responses/Error404.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml

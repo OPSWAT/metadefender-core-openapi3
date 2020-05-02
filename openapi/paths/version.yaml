@@ -1,0 +1,26 @@
+get:
+  tags:
+    - stats
+  summary: Get Product Version
+  description: Fetch details about the product version.
+  operationId: productVersion
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      description: Provides productId and version information.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              product_id:
+                description: Product identifier.
+                type: string
+                example: MSCL
+              version:
+                description: The product version currently used.
+                type: string
+                example: 4.18.0
+    '500':
+      $ref: ../components/responses/Error500.yaml

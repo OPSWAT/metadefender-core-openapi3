@@ -1,0 +1,23 @@
+put:
+  tags:
+    - config
+  summary: Processing history clean up
+  description: |
+    Setting processing history clean up time (clean up records older than). 
+    > _**Note**_:The clean up range is defined in `hours`. 
+  operationId: configScanHistory
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    $ref: ../components/requestBodies/adminCleanup.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/AdminCleanupResponse.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

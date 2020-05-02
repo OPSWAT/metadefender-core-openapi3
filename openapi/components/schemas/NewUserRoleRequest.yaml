@@ -1,0 +1,87 @@
+description: MetaDefender user role describing object.
+type: object
+properties:
+  name:
+    description: The name identifier of the role
+    type: string
+    example: new_role
+  display_name:
+    description: The extended name showed in the Management Console.
+    type: string
+    example: New MetaDefender User Role
+  rights:
+    description: A list of rights for each permission
+    type: object
+    properties:
+      agents:
+        description: What permissions are allowed for Node.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      cert:
+        description: What permissions are allowed for Certificates.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      configlog:
+        description: What permissions are allowed for Configuration logs.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      engines:
+        description: What permissions are allowed for Engines and Modules.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      external:
+        description: >-
+          What permissions are allowed for External actions (External
+          Scanner/Post Actions).
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      license:
+        description: What permissions are allowed for managing the License.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      quarantine:
+        description: What permissions are allowed for managing the Quarantine.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      retention:
+        description: What permissions are allowed for managing the retention policies.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      rule:
+        description: What permissions are allowed for managing the workflow rules.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      scan:
+        description: What permissions are allowed for managing analysis actions.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      scanlog:
+        description: What permissions are allowed for managing the analysis logs.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      skip:
+        description: >-
+          What permissions are allowed for managing the Whitelist/blacklist
+          defined in the Inventory.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      update:
+        description: What permissions are allowed for managing the update configuration.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      updatelog:
+        description: What permissions are allowed for managing the update logs.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      users:
+        description: What permissions are allowed for managing the users.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      workflow:
+        description: What permissions are allowed for managing the workflow templates.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml
+      zone:
+        description: What permissions are allowed for managing the network zones.
+        allOf:
+          - $ref: ./RolePermissionObject.yaml

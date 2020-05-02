@@ -1,0 +1,36 @@
+post:
+  tags:
+    - engines
+  summary: Disable engines
+  description: Disable to use the selected engines on the nodes.
+  operationId: engineDisable
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - name: engineId
+      description: The unique engine identifier
+      in: path
+      required: true
+      schema:
+        type: string
+        example: clamav_7_linux
+  responses:
+    '200':
+      description: Request processed successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:
+                type: string
+                example: Engine is disabled
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

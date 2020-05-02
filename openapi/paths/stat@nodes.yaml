@@ -1,0 +1,136 @@
+get:
+  tags:
+    - stats
+  summary: Nodes Status
+  description: Get a list of all connected nodes and their status.
+  operationId: nodesStatus
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      description: An array with all the engines and their details.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                external_nodes_allowed:
+                  description: >-
+                    Configuration option if additional external nodes could be
+                    connected.
+                  type: boolean
+                  example: false
+                max_node_count:
+                  description: Remaining available slots to connect to this instance.
+                  type: integer
+                  example: 1
+                statuses:
+                  description: Array with a status for each attached node.
+                  type: array
+                  items:
+                    description: Node status
+                    type: object
+                    properties:
+                      address:
+                        description: 'The location of the Node. If local, is empty string.'
+                        type: string
+                        example: ''
+                      cpu_cores:
+                        description: The number of CPU Cores allocated to this Node.
+                        type: integer
+                        example: 8
+                      engines:
+                        description: Summary of each engine status deployed on this Node.
+                        type: array
+                        items:
+                          description: Engine summary
+                          type: object
+                          properties:
+                            active:
+                              description: If used by at least one engine
+                              type: boolean
+                              example: true
+                            db_ver:
+                              description: The database version for this engine
+                              type: string
+                              example: '25050'
+                            def_time:
+                              description: The database definition time for this engine
+                              type: string
+                              example: '2020-04-17T02:37:05.000Z'
+                            eng_name:
+                              description: Engine name
+                              type: string
+                              example: ClamAV
+                            eng_ver:
+                              description: >-
+                                Engine's version (format differs from one engine
+                                to another).
+                              type: string
+                              example: 3.0-43
+                            engine_type:
+                              description: |
+                                Engine's type: 
+                                  * av
+                                  * archive
+                                  * filetype
+                              type: string
+                              enum:
+                                - av
+                                - archive
+                                - filetype
+                              example: av
+                            id:
+                              description: Engine internal ID
+                              type: string
+                              example: clamav_1_linux
+                      free_disk_space:
+                        description: Reported available disk on that Node (in bytes).
+                        type: integer
+                        example: 173993443328
+                      id:
+                        description: Node identfier
+                        type: string
+                        example: ':69'
+                      issues:
+                        description: A list of all potentials problems on that Node.
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            description:
+                              description: Text detailing the issue.
+                              type: string
+                              example: 1 engines are not deployed to this node
+                            severity:
+                              description: How important is the reported issue.
+                              type: string
+                              example: warning
+                      load:
+                        description: Current CPU utilization on this Node (in percentage).
+                        type: integer
+                        example: 14
+                      os:
+                        description: Current used OS
+                        type: string
+                        example: Linux Mint 18.3 Sylvia
+                      scan_queue:
+                        description: >-
+                          Current load on the Node, how many files are in the
+                          queue
+                        type: integer
+                        example: 24
+                      total_memory:
+                        description: How much memory is allocated on this Node (in MB).
+                        type: integer
+                        example: 40100
+                      version:
+                        description: Product version
+                        type: string
+                        example: 4.18.0
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml

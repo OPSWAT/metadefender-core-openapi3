@@ -1,0 +1,11 @@
+description: The user has no rights for this operation.
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        err:
+          type: string
+          description: Error reason
+    example:
+      err: Access denied

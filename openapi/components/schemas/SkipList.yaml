@@ -1,0 +1,22 @@
+description: Object that defines the skip hashes list.
+type: object
+properties:
+  blacklist:
+    type: object
+    example:
+      edecbf6bd03ef340e0c6cd438a4069c2:
+        comment: example3
+  skip:
+    type: object
+    example:
+      13d8b8329bd2f668e6a889f32feaa48c832dbf0c:
+        comment: example4
+        engines:
+          - totaldefense
+  whitelist:
+    type: object
+    example:
+      6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d:
+        comment: example5
+      df72d035b31b1ff89f752e83af14b9e9dcf4913d9954f074546860d10b6908fb:
+        comment: example2

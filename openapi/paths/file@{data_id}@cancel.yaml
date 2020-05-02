@@ -1,0 +1,37 @@
+post:
+  tags:
+    - analysis
+  summary: Cancel File Analysis
+  description: >
+    When cancelling a file analysis, the connected analysis (e.g. files in an
+    archive) that are still in progress will be cancelled also. 
+
+
+    The cancelled analysis will be automatically closed.
+  operationId: fileAnalysisCancel
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - name: data_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Analysis was successfully cancelled.
+      content:
+        application/json:
+          schema:
+            type: object
+          example:
+            <<data_id>>: cancelled
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '404':
+      $ref: ../components/responses/Error404.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml

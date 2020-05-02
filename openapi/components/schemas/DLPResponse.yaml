@@ -1,0 +1,136 @@
+description: Full report from Proactive DLP
+type: object
+properties:
+  dlp_info:
+    description: Information on matched sensitive data
+    type: object
+    properties:
+      certainty:
+        description: |
+          Describes how certain the hit is, possible values:
+            * `Very Low`
+            * `Low`
+            * `Medium`
+            * `High`
+            * `Very High`
+        type: string
+        enum:
+          - Very Low
+          - Low
+          - Medium
+          - High
+          - Very High
+        example: High
+      errors:
+        description: >
+          A  list of error objects (empty if no errors happened), each error
+          object contains following keys:
+            * `scan`: scan related error description
+            * `redact`: redaction related error description
+            * `watermark`: watermark related error description
+            * `metadata_removal`: metadata removal related error description
+        type: object
+        example:
+          redact: File structure invalid.
+      filename:
+        description: >-
+          Output processed file name (pre-configured on engine settings under
+          Core's worflow rule)
+        type: string
+        example: >-
+          OPSWAT_Proactive_DLP_CCN_proactive-dlp-processed_by_OPSWAT_MetaDefender_8101abae27be4d63859c55d9e0ed0135.pdf
+      hits:
+        description: |
+          Detailed results that contains as key the type of matched rule: 
+            * ccn (credit card number), 
+            * ssn (social security number), 
+            * regex_<index> (regular expression with an index in order to differentiate the RegEx rules if there are more.)
+        type: object
+        properties:
+          ccn:
+            type: object
+            properties:
+              display_name:
+                description: >-
+                  Credit Card Number, Social Security Number, or in case of
+                  RegEx, the name of the rule that has been given by the user
+                type: string
+                example: Credit Card Number
+              hits:
+                description: A list of detections that matched this rule/pattern.
+                type: array
+                items:
+                  type: object
+                  allOf:
+                    - $ref: ./DLPRuleMatchResult.yaml
+      metadata_removal:
+        description: Result of metadata removal.
+        type: object
+        properties:
+          result:
+            description: >
+              Result of the metadata removal process, possible values: *
+              `removed` * `not removed` * `failed to remove`
+            type: string
+            enum:
+              - removed
+              - not removed
+              - failed to remove
+            example: not removed
+      redact:
+        description: Result of redaction process.
+        type: object
+        properties:
+          result:
+            description: >
+              Result of the redaction process, possible values: * `redacted` *
+              `not redacted` * `failed to redact`
+            type: string
+            enum:
+              - redacted
+              - not redacted
+              - failed to redact
+            example: redacted
+      severity:
+        description: >
+          (NOTE: this field is deprecated): represents the severity of the data
+          loss, possible values:
+            * `0` - Certainly is data loss
+            * `1` - Might be data loss
+        type: integer
+        enum:
+          - 0
+          - 1
+        example: 0
+      verdict:
+        description: |
+          The overall result for the scanned file. It can be
+            | index         | status                       |
+            |---------------|------------------------------|
+            | 0             | Clean                        |
+            | 1             | Found matched data           |
+            | 2             | Suspicious                   |
+            | 3             | Failed                       |
+            | 4             | Not scanned                  |
+        type: integer
+        enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+        example: 1
+      watermark:
+        description: Result of watermarking process.
+        type: object
+        properties:
+          result:
+            description: >
+              Result of the watermarking process, possible values: * `added` *
+              `not added` * `failed to add`
+            type: string
+            enum:
+              - added
+              - not added
+              - failed to add
+            example: added

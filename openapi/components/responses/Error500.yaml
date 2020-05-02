@@ -1,0 +1,11 @@
+description: Unexpected event on server
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        err:
+          type: string
+          description: Error reason
+    example:
+      err: <error message>

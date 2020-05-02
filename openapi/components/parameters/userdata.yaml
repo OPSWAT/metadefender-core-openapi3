@@ -1,0 +1,7 @@
+name: user-data
+description: |
+  Additional custom information (max 1024 bytes, URL encoded UTF-8 string)      
+in: header
+required: false
+schema:
+  type: string

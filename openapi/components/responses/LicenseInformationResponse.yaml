@@ -1,0 +1,7 @@
+description: >-
+  Information about the licensed product (product type, number of activations,
+  deploymentId, expiration date and days left)
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/LicenseInformation.yaml

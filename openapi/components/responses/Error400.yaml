@@ -1,0 +1,11 @@
+description: 'Bad Request (e.g. invalid header, apikey is missing or invalid).'
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        err:
+          type: string
+          description: Error reason
+    example:
+      err: Access denied

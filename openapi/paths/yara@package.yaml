@@ -1,0 +1,17 @@
+get:
+  tags:
+    - yara
+  summary: Yara Generation Status
+  description: Get status of Yara package generation.
+  operationId: yaraPackageStatus
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/YaraGenerationResponse.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

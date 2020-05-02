@@ -1,0 +1,41 @@
+description: Object describing the yara sources.
+type: object
+properties:
+  local_sources:
+    description: A list of all locals sources
+    type: array
+    items:
+      description: >-
+        Object defining the location of the files and if this source is being
+        used.
+      type: object
+      properties:
+        source:
+          description: The location (file path) of the files.
+          type: string
+          example: /mnt/yara
+        state:
+          description: Defining if this source is being used or not
+          type: string
+          enum:
+            - disabled
+            - enabled
+          example: enabled
+  http_sources:
+    description: A list of all remote sources.
+    type: array
+    items:
+      description: Object defining the URL and if this source is being used.
+      type: object
+      properties:
+        source:
+          description: The location (URL) of the package.
+          type: string
+          example: 'http://onlineyarasources.net/source.zip'
+        state:
+          description: Defining if this source is being used or not
+          type: string
+          enum:
+            - disabled
+            - enabled
+          example: disabled

@@ -1,0 +1,52 @@
+post:
+  tags:
+    - admin
+  summary: Import configuration
+  description: Import configuration from file.
+  operationId: adminImport
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: string
+          format: file
+          example: |-
+            {
+              "config": {
+                  "policy.rule.rule": {
+                      "items": [
+                          {
+                              "active": true,
+                              "allow_cert": false,
+                              "allow_cert.cert": "None",
+            ... }
+  responses:
+    '200':
+      description: Request processed successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:
+                type: string
+                example: Successfully imported
+    '304':
+      description: The configuration has not changed
+      content:
+        application/json:
+          schema:
+            type: object
+            example: {}
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

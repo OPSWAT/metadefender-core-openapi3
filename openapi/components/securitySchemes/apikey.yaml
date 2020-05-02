@@ -1,0 +1,6 @@
+description: >
+  Generated `session_id` from [Login](#operation/userLogin) call can be used as
+  an `apikey` for API calls that require authentication.
+type: apiKey
+name: apikey
+in: header

@@ -1,0 +1,5 @@
+description: Request processed successfully
+content:
+  application/json:
+    example:
+      success: true

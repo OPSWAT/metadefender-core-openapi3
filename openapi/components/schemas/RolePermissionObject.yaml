@@ -1,0 +1,12 @@
+description: An object defining the permission set allowed on MetaDefender individual role.
+type: array
+example:
+  - read
+  - write
+items:
+  type: string
+  enum:
+    - read
+    - write
+  example:
+    - read

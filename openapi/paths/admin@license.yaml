@@ -1,0 +1,51 @@
+get:
+  tags:
+    - license
+  summary: Get Current License Information
+  description: Fetch all details about the licensing status of the product.
+  operationId: licenseGet
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/LicenseInformationResponse.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []
+post:
+  tags:
+    - license
+  summary: Upload license key
+  operationId: licenseUpload
+  description: >-
+    Uploading a license file to the Metadefender Core.
+
+
+    There are two ways two obtain a license key file:
+     - via https://portal.opswat.com/activation portal
+     - via activation server REST API: https://activation.dl.opswat.com/activation?key=%activation_key%&deployment=%deployment_unique_ID%&quantity=%quantity%
+
+    Deployment unique ID can be fetched via Get Current License Information
+    API.      
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    $ref: ../components/requestBodies/licenseFile.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/Success200.yaml
+    '400':
+      description: Invalid license file
+      content:
+        application/json:
+          example:
+            err: Invalid license
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

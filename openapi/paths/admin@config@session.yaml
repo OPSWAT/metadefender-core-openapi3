@@ -1,0 +1,30 @@
+put:
+  tags:
+    - config
+  summary: Session settings
+  description: |
+    Configure settings for session generated upon a successful login
+    See more at [Login](#operation/userLogin)
+  operationId: configSession
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/AdminConfigSession.yaml
+  responses:
+    '200':
+      description: Request processed successfully
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AdminConfigSession.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []
