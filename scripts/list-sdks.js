@@ -20,7 +20,7 @@ var main = function() {
 
 
     for (var lang of langs) {
-        sdksListText += "  | " + lang + " | [Github > sdks/" + lang + "](https://github.com/georgeprichici/metadefender-core-openapi3/tree/gh-pages/out/sdks/"+ lang + ") |\n";
+        sdksListText += "  | " + lang + " | [Github > sdks/" + lang + "](https://github.com/georgeprichici/metadefender-core-openapi3/tree/gh-pages/sdks/"+ lang + ") |\n";
     }
     sdksListText += "\n\n----\n\n"
 
