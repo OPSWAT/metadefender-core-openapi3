@@ -29,9 +29,12 @@ snippets:
     #- shell_httpie
     #- shell_wget
     #- swift_nsurlsession    #(default)
-
+docs:
+    generate: true
+    bundleSnippets: true
 sdks:
-  generate: false
+  generate: true
+  updateInfo: true
   langs:
     - python
     - c
@@ -49,10 +52,10 @@ sdks:
 pdf:
   generate: false
 github:
-  repo:
-    update: false
+  sdks:
+    update: true
   pages:
-    update: false
+    update: true
 
 
         
