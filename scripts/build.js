@@ -92,7 +92,7 @@ var generatePDF = function(openAPISpecPath, lang, destFolder) {
 }
 
 var generateSDK = function(openAPISpecPath, destFolder, lang) {    
-    __exec('openapi-generator generate -i' + openAPISpecPath + ' -g ' + lang + ' -o ' + destFolder + "/sdks/" + lang, "Generate SDK");    
+    __exec('openapi-generator generate -i' + openAPISpecPath + ' -g ' + lang + ' -o ' + destFolder + "/" + lang + " --generate-alias-as-model", "Generate SDK");    
 }
 
 var generateSDKs = function(openAPISpecPath, destFolder, langs) {
@@ -107,6 +107,10 @@ var generateSnippets =function(openApiFullSpec, snippetsFolder, configFilePath) 
 
 var attachSnippets = function(openApiPathsSpecsFolder, destinationFolder, snippetsFolder){ 
     __exec('node ./scripts/attach-snippets.js ' + openApiPathsSpecsFolder + ' ' + destinationFolder + ' ' + snippetsFolder, "Attach snippets");
+}
+
+var addSDKstoOpenApiInfo = function(openApiPathsSpecsFolder, configFilePath){ 
+    __exec('node ./scripts/list-sdks.js ' + openApiPathsSpecsFolder + ' ' + configFilePath, "List SDKs");
 }
 
 var main = function() {
@@ -134,28 +138,25 @@ var main = function() {
         generateSnippets(fullSpec, destinationFolder + "/code_samples", configFilePath);
         attachSnippets(openAPISpecFolder + "/paths", destinationFolder + "/openapi", destinationFolder + "/code_samples", config);
                 
-        bundleFullSpecFile(destinationFolder + "/openapi/openapi.yaml", destinationFolder + "/openapi-with-snippets", "metadefender-core-openapi3.docs.json");    
-
-        var fullSpec = destinationFolder + "/openapi-with-snippets/metadefender-core-openapi3.docs.json";
-        buildDocs(fullSpec, destinationFolder + "/html")        
+        bundleFullSpecFile(destinationFolder + "/openapi/openapi.yaml", destinationFolder + "/openapi-with-snippets", "metadefender-core-openapi3.docs.json");         
     }
-    
+    var fullSpec = destinationFolder + "/openapi-with-snippets/metadefender-core-openapi3.docs.json";
+
     if (config.sdks.generate) {
         generateSDKs(openApiSpecs, destinationFolder + "/sdks", config.sdks.langs);
+
+        if (config.sdks.updateInfo) {
+            addSDKstoOpenApiInfo(fullSpec, configFilePath);
+        }
+    }
+
+    if (config.docs.generate) {        
+        buildDocs(fullSpec, destinationFolder + "/html")        
     }
 
     if (config.pdf.generate) {
         generatePDF();
     }
-    
-    if (config.github.repo.update) {
-        updateGithubRepo();
-    }
-    
-
-    if (config.github.pages.update) {
-        updateGithubPages();
-    }    
 }
 
 
