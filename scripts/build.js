@@ -83,7 +83,7 @@ var bundleFullSpecFile = function(openAPISpecPath, destFolder, outputName) {
 }
 
 var buildDocs = function(openAPISpecPath, destFolder) {    
-    __exec('node ./node_modules/redoc-cli/index.js bundle -o ' + destFolder + '/index.html ' + openAPISpecPath, "redoc bundle");   
+    __exec('node ./node_modules/redoc-cli/index.js bundle -o ' + destFolder + '/index.html ' + openAPISpecPath + " --options.jsonSampleExpandLevel=4", "redoc bundle");   
     cp(destFolder + '/index.html', './dist');
 }
 
