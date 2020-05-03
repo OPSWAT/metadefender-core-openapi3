@@ -9,6 +9,6 @@ deploy:
   skip_cleanup: true
   github_token: $GITHUB_TOKEN
   keep_history: true
-  script: node scripts/gh-pages-deploy.js  
+  script: node scripts/gh-pages-deploy.js config/config.yaml
   on:
     branch: master
