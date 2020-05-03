@@ -1,5 +1,5 @@
 # MetaDefender Core OpenAPI Definition
-
+[![Build Status](https://travis-ci.com/georgeprichici/metadefender-core-openapi3.svg?branch=master)](https://travis-ci.com/georgeprichici/metadefender-core-openapi3)
 ## Working on your OpenAPI Definition
 
 ### Install
