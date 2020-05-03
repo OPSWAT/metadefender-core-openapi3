@@ -69,11 +69,11 @@ exports.absolutePath = function(relativePath) {
 }
 
 exports.langExtension = function(lang) {
-    return langDict[lang]['ext'] || 'txt'
+    return lang in langDict ? langDict[lang]['ext'] : 'txt'
 }
 
 exports.langAlias = function(lang){
-    return langDict[lang]['alias'] || 'Undefined'
+    return lang in langDict ? langDict[lang]['alias'] : 'Undefined';
 }
 
 exports.langToExtension = function(lang){
