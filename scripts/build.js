@@ -139,8 +139,9 @@ var main = function() {
         attachSnippets(openAPISpecFolder + "/paths", destinationFolder + "/openapi", destinationFolder + "/code_samples", config);
                 
         bundleFullSpecFile(destinationFolder + "/openapi/openapi.yaml", destinationFolder + "/openapi-with-snippets", "metadefender-core-openapi3.docs.json");         
+        fullSpec = destinationFolder + "/openapi-with-snippets/metadefender-core-openapi3.docs.json";
     }
-    var fullSpec = destinationFolder + "/openapi-with-snippets/metadefender-core-openapi3.docs.json";
+    
 
     if (config.sdks.generate) {
         generateSDKs(openApiSpecs, destinationFolder + "/sdks", config.sdks.langs);
