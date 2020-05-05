@@ -10,32 +10,120 @@
 ### Usage
 
 #### `npm start`
-Starts the reference docs preview server.
+Will run the build scripts and generate the output based on the config file.
+But first make sure you validate the configuration file (more in [Config file](#config) section).
 
-#### `npm run build`
-Bundles the definition to the dist folder.
+## Config
 
-#### `npm test`
-Validates the definition.
+The config file will dictate the build flow and output. All the logic is managed by feature switches within the config file, no code updates should be required (except new functionality to be added) 
+
+### Default configuration
+
+````yaml
+source: '../openapi/openapi.yaml' ### provide the original file. 
+output: '../out'                  ### output location               
+snippets:
+  generate: true                  ### feature toggle for: generating code samples. by default are generated in `out/code_samples`
+  attachSnippets: true            ### feature toggle for: generating an openapi spec with attached code snippets. by default is generated in `out/openapi-with-snippets/metadefender-core-openapi3.docs.json`
+  langs:                          ### list of the languages supported. enable/disable (uncomment/comment) which you want active or not. 
+    - c_libcurl             # (default)
+    - csharp_restsharp      #(default)
+    #- go_native             #(default)
+    - java_okhttp
+    #- java_unirest          #(default)
+    #- javascript_jquery
+    #- javascript_xhr        #(default)
+    - node_native           #(default)
+    #- node_request
+    #- node_unirest
+    #- objc_nsurlsession     #(default)
+    #- ocaml_cohttp          #(default)
+    - powershell_webrequest
+    - php_curl              #(default)
+    #- php_http1
+    #- php_http2
+    - python_python3        #(default)
+    #- python_requests
+    #- vruby_native          #(default)
+    - shell_curl            #(default)
+    #- shell_httpie
+    #- shell_wget
+    #- swift_nsurlsession    #(default)
+docs:
+    generate: true              ### feature toggle for: generate the html documentation
+    bundleSnippets: true        ### feature toggle for: add code snippets (samples) to the html docs. Requires for snippets.generate is enabled as well.
+sdks:
+  generate: false               ### feature toggle for: generate SDKs. default location would be `out/sdks`   
+  updateInfo: false             ### feature toggle for: update the Info description block with the list of SDKs (links to Github location), Dependency on `github.sdks.update` and `github.pages.update`
+  langs:                        ### list of the languages supported. enable/disable (uncomment/comment) which you want active or not. 
+    - python
+    - c
+    - cpp-qt5-client
+    - csharp
+    - go 
+    - java
+    - javascript
+    - jmeter
+    - perl
+    - php
+    - powershell
+    - ruby
+    - scala-gatling      
+pdf:                            ### Not supported for now. 
+  generate: false
+github:
+  sdks:                         
+    update: true                ### feature toggle for: push the SDKs to github `repo/gh-pages/out/sdks`. Travis will do that as part of the deploy process. dependency on `sdks.generate`
+  pages:
+    update: true                ### feature toggle for: push the html docs to github `repo/gh-pages/out/sdks`. Travis will do that as part of the deploy process. dependency on `docs.generate`
+````
+
+#### Generate Docs
+
+You can generate html docs by enabling `config.yaml#docs.generate`. 
+This functionality is using the amazing [Redocly's Redoc](https://github.com/Redocly/redoc). Love it, couldn't recommend it more! 
+
+Redoc supports code-snippets, by using the `x-code-samples` tag. As long as the code samples are listed in the openapi docs, Redoc will render them. 
+In order to do so, you need to: 
+* Generate and attach code snippets to the openapi spec (see [Generate Code Samples](#generate-code-samples) section).
+* enable `docs.bundleSnippets`(otherwise will generate from the openapi spec without the code snippets)
+
+#### Generate Code Samples
+
+Code samples (snippets) are generated on demand by using the `config.yaml#snippets` object. 
+In order to generate an openapi spec with code snippets embedded: 
+* enable code snippets generation (`config.yaml#snippets.generate`).
+* select your desired languages (`config.yaml#snippets.langs`)
+* enable attach snippets (`config.yaml#snippets.attachSnippets`)
+
+#### Generate SDKs
+
+SDKs are generated on demand by using the `config.yaml#sdks` object. 
+In order to generate client (or server side) SDKs: 
+* enable SDKs generation (`config.yaml#sdks.generate`).
+* select your desired languages/platforms (`config.yaml#snippets.langs`)
+> _**Optional**_: You can list all the supported sdks in the Info section by enabling `config.yaml#sdks.updateInfo`. Please note that this will require both `config.yaml#github` configurations to be enabled (see more in [Github updates](#generate-github-updates) section)
+
+
+
+#### Generate Github updates
+
+Github can display your documentation using Github Pages, if the documentation is available in the `gh-pages` branch. 
+Travis CI is configured to automatically run the deploy script, which can publish to `gh-pages` the new build. 
+
+In order to update the github pages, you should: 
+* enable publishing to github pages (`config.yaml#github.pages.update`)
+  * has dependency on creating the html docs `docs.generate`
+* can publish also the sdks as part of the same branch (`config.yaml#github.sdks.update`)
+  * has dependency on generating the sdks (`config.yaml#sdks.generate`)
+  
 
 ## Contribution Guide
 
-Below is a sample contribution guide. The tools 
-in the repository don't restrict you to any 
-specific structure. Adjust the contribution guide
-to match your own structure. However, if you 
-don't have a structure in mind, this is a
-good place to start.
+All changes should be done in [openapi folder](https://github.com/georgeprichici/metadefender-core-openapi3/tree/master/openapi), which contains the raw openapi spec. 
+Please note that the format is openapi v3.0.0 and is using [Redocly's create-open-repo](https://github.com/Redocly/create-openapi-repo/) to ease the management of the API spec. 
 
-Update this contribution guide if you
-adjust the file/folder organization.
-
-The `.redocly.yaml` controls settings for various
-tools including the lint tool and the reference
-docs engine.  Open it to find examples and 
-[read the docs](https://docs.redoc.ly/cli/configuration/)
-for more information.
-
+> _**Note**_: You will have to build the project to generate the full valid openapi spec, otherwise will rely on the relative file path, not component based paths. 
 
 ### Schemas
 
@@ -46,96 +134,22 @@ for more information.
 3. Define the schema.
 4. Refer to the schema using the `$ref` (see example below).
 
-##### Example Schema
-This is a very simple schema example:
 ```yaml
-type: string
-description: The resource ID. Defaults to UUID v4
-maxLength: 50
-example: 4f6cf35x-2c4y-483z-a0a9-158621f77a21
+file_info:
+    $ref: ./FileInformation.yaml
 ```
-This is a more complex schema example:
+
+which will be built as: 
+
 ```yaml
-type: object
-properties:
-  id:
-    description: The customer identifier string
-    readOnly: true
-    allOf:
-      - $ref: ./ResourceId.yaml
-  websiteId:
-    description: The website's ID
-    allOf:
-      - $ref: ./ResourceId.yaml
-  paymentToken:
-    type: string
-    writeOnly: true
-    description: |
-      A write-only payment token; if supplied, it will be converted into a
-      payment instrument and be set as the `defaultPaymentInstrument`. The
-      value of this property will override the `defaultPaymentInstrument`
-      in the case that both are supplied. The token may only be used once
-      before it is expired.
-  defaultPaymentInstrument:
-    $ref: ./PaymentInstrument.yaml
-  createdTime:
-    description: The customer created time
-    allOf:
-      - $ref: ./ServerTimestamp.yaml
-  updatedTime:
-    description: The customer updated time
-    allOf:
-      - $ref: ./ServerTimestamp.yaml
-  tags:
-    description: A list of customer's tags
-    readOnly: true
-    type: array
-    items:
-      $ref: ./Tags/Tag.yaml
-  revision:
-    description: >
-      The number of times the customer data has been modified.
-
-      The revision is useful when analyzing webhook data to determine if the
-      change takes precedence over the current representation.
-    type: integer
-    readOnly: true
-  _links:
-    type: array
-    description: The links related to resource
-    readOnly: true
-    minItems: 3
-    items:
-      anyOf:
-        - $ref: ./Links/SelfLink.yaml
-        - $ref: ./Links/NotesLink.yaml
-        - $ref: ./Links/DefaultPaymentInstrumentLink.yaml
-        - $ref: ./Links/LeadSourceLink.yaml
-        - $ref: ./Links/WebsiteLink.yaml
-  _embedded:
-    type: array
-    description: >-
-      Any embedded objects available that are requested by the `expand`
-      querystring parameter.
-    readOnly: true
-    minItems: 1
-    items:
-      anyOf:
-        - $ref: ./Embeds/LeadSourceEmbed.yaml
-
+file_info:
+    $ref: '#components/schemas/FileInformation.yaml'
 ```
+
 
 ##### Using the `$ref`
 
 Notice in the complex example above the schema definition itself has `$ref` links to other schemas defined.
-
-Here is a small excerpt with an example:
-
-```yaml
-defaultPaymentInstrument:
-  $ref: ./PaymentInstrument.yaml
-```
-
 The value of the `$ref` is the path to the other schema definition.
 
 You may use `$ref`s to compose schema from other existing schema to avoid duplication.
@@ -162,89 +176,14 @@ Example addition to the `openapi.yaml` file:
   $ref: './paths/customers@{id}.yaml'
 ```
 
-Here is an example of a YAML file named `customers@{id}.yaml` in the `paths` folder:
-
-```yaml
-get:
-  tags:
-    - Customers
-  summary: Retrieve a list of customers
-  operationId: GetCustomerCollection
-  description: |
-    You can have a markdown description here.
-  parameters:
-    - $ref: ../components/parameters/collectionLimit.yaml
-    - $ref: ../components/parameters/collectionOffset.yaml
-    - $ref: ../components/parameters/collectionFilter.yaml
-    - $ref: ../components/parameters/collectionQuery.yaml
-    - $ref: ../components/parameters/collectionExpand.yaml
-    - $ref: ../components/parameters/collectionFields.yaml
-  responses:
-    '200':
-      description: A list of Customers was retrieved successfully
-      headers:
-        Rate-Limit-Limit:
-          $ref: ../components/headers/Rate-Limit-Limit.yaml
-        Rate-Limit-Remaining:
-          $ref: ../components/headers/Rate-Limit-Remaining.yaml
-        Rate-Limit-Reset:
-          $ref: ../components/headers/Rate-Limit-Reset.yaml
-        Pagination-Total:
-          $ref: ../components/headers/Pagination-Total.yaml
-        Pagination-Limit:
-          $ref: ../components/headers/Pagination-Limit.yaml
-        Pagination-Offset:
-          $ref: ../components/headers/Pagination-Offset.yaml
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: ../components/schemas/Customer.yaml
-        text/csv:
-          schema:
-            type: array
-            items:
-              $ref: ../components/schemas/Customer.yaml
-    '401':
-      $ref: ../components/responses/AccessForbidden.yaml
-  x-code-samples:
-    - lang: PHP
-      source:
-        $ref: ../code_samples/PHP/customers/get.php
-post:
-  tags:
-    - Customers
-  summary: Create a customer (without an ID)
-  operationId: PostCustomer
-  description: Another markdown description here.
-  requestBody:
-    $ref: ../components/requestBodies/Customer.yaml
-  responses:
-    '201':
-      $ref: ../components/responses/Customer.yaml
-    '401':
-      $ref: ../components/responses/AccessForbidden.yaml
-    '409':
-      $ref: ../components/responses/Conflict.yaml
-    '422':
-      $ref: ../components/responses/InvalidDataError.yaml
-  x-code-samples:
-    - lang: PHP
-      source:
-        $ref: ../code_samples/PHP/customers/post.php
-```
-
-You'll see extensive usage of `$ref`s in this example to different types of components including schemas.
-
-You'll also notice `$ref`s to code samples.
-
 ### Code samples
 
-1. Navigate to the `openapi/code_samples` folder.
-2. Navigate to the `<language>` (e.g. PHP) sub-folder.
-3. Navigate to the `path` folder, and add ref to the code sample.
+> _**Note**_: Don't generate your own code samples! 
 
-You can add languages by adding new folders at the appropriate path level.
+Make sure you set your configuration in `config/config.yaml` to: 
+* generate code snippets 
+  * if you select to bundle snippets, those will be attached to the final response (in `out/openapi-with-snippets/metadefender-core-openapi3.docs.json`)
+* generate SDKs
+  * you can also update the Info block, to list all the SDKs generated in a table
 
-More details inside the `code_samples` folder README.
+
