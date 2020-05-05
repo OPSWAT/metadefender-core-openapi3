@@ -2,74 +2,59 @@ description: >-
   Deep CDR module returns forensic info to describe what happened during the
   process in the case file was successfully sanitized.
 type: object
-example: |-
-  {
-    "description": "Sanitized successfully.",
-    "details": [
-      {
-        "action": "sanitized",
-        "object_name": "XML content"
-      },
-      {
-        "action": "removed",
-        "count": 1,
-        "object_details": [
-          "<ddeLink xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" ddeService=\"calc\" ddeTopic=\"topic\" xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">\r\n  <ddeItems>\r\n    <ddeItem name=\"_xlbgnm.A3\" advise=\"1\" />\r\n    <ddeItem name=\"StdDocumentName\" ole=\"1\" advise=\"1\" />\r\n  </ddeItems>\r\n</ddeLink>"
-        ],
-        "object_name": "DDE"
-      },
-      {
-        "action": "removed",
-        "count": 2,
-        "object_details": [
-          "http://metadefender.com/",
-          "http://google.com/"
-        ],
-        "object_name": "hyperlink"
-      },
-          {
-              "object_name":"XLS file",
-              "file_name":"Microsoft_Excel_97-2003_Worksheet.xls",
-              "description":"Sanitized successfully.",
-              "details":[
-                  {
-                      "action":"removed",
-            "count": 1,
-            "object_details": [
-              "Attribute VB_Name = \"Sheet1\"\r\nAttribute VB_Base = \"0{00020820-0000-0000-C000-000000000046}\"\r\nAttribute VB_GlobalNameSpace = False\r\nAttribute VB_Creatable = False\r\nAttribute VB_PredeclaredId = True\r\nAttribute VB_Exposed = True\r\nAttribute VB_TemplateDerived = False\r\nAttribute VB_Customizable = True\r\n"
-            ],
-                      "object_name":"macro"
-                  }
-              ],
-              "action":"sanitized"
-          },
-          {
-              "object_name":"XLSX file",
-              "file_name":"Microsoft_Excel_Worksheet.xlsx",
-              "description":"invalid file structure.",
-              "details":"Relationship file sharedStrings.xml does not exist",
-              "action":"removed"
-          },
-      {
-        "action": "removed",
-        "count": 1,
-        "object_name": "OLE"
-      },
-      {
-        "action": "sanitized",
-        "count": 3,
-        "object_name": "image"
-      },
-      {
-        "action": "removed",
-        "count": 1,
-        "object_details": [
-          "Attribute VB_Name = \"Module1\"\r\nSub test_Macro()\r\nAttribute test_Macro.VB_Description = \"create macro for FTC test\"\r\nAttribute test_Macro.VB_ProcData.VB_Invoke_Func = \"e\\n14\"\r\n'\r\n' test_Macro Macro\r\n' create macro for FTC test\r\n'\r\n' Keyboard Shortcut: Ctrl+e\r\n'\r\n    Range(\"B13\").Select\r\n    ActiveCell.FormulaR1C1 = \"testing macro\"\r\n    Range(\"C13\").Select\r\n    ActiveCell.FormulaR1C1 = \"blablabla\"\r\n    Range(\"D13\").Select\r\nEnd Sub\r\n"
-        ],
-        "object_name": "macro"
-      }
-    ]
-  }        
+example: 
+  description: Sanitized successfully.
+  details:
+  - action: sanitized
+    object_name: XML content
+  - action: removed
+    count: 1
+    object_details:
+    - "<ddeLink xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"
+      ddeService=\"calc\" ddeTopic=\"topic\" xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">\r\n
+      \ <ddeItems>\r\n    <ddeItem name=\"_xlbgnm.A3\" advise=\"1\" />\r\n    <ddeItem
+      name=\"StdDocumentName\" ole=\"1\" advise=\"1\" />\r\n  </ddeItems>\r\n</ddeLink>"
+    object_name: DDE
+  - action: removed
+    count: 2
+    object_details:
+    - http://metadefender.com/
+    - http://google.com/
+    object_name: hyperlink
+  - object_name: XLS file
+    file_name: Microsoft_Excel_97-2003_Worksheet.xls
+    description: Sanitized successfully.
+    details:
+    - action: removed
+      count: 1
+      object_details:
+      - "Attribute VB_Name = \"Sheet1\"\r\nAttribute VB_Base = \"0{00020820-0000-0000-C000-000000000046}\"\r\nAttribute
+        VB_GlobalNameSpace = False\r\nAttribute VB_Creatable = False\r\nAttribute VB_PredeclaredId
+        = True\r\nAttribute VB_Exposed = True\r\nAttribute VB_TemplateDerived = False\r\nAttribute
+        VB_Customizable = True\r\n"
+      object_name: macro
+    action: sanitized
+  - object_name: XLSX file
+    file_name: Microsoft_Excel_Worksheet.xlsx
+    description: invalid file structure.
+    details: Relationship file sharedStrings.xml does not exist
+    action: removed
+  - action: removed
+    count: 1
+    object_name: OLE
+  - action: sanitized
+    count: 3
+    object_name: image
+  - action: removed
+    count: 1
+    object_details:
+    - "Attribute VB_Name = \"Module1\"\r\nSub test_Macro()\r\nAttribute test_Macro.VB_Description
+      = \"create macro for FTC test\"\r\nAttribute test_Macro.VB_ProcData.VB_Invoke_Func
+      = \"e\\n14\"\r\n'\r\n' test_Macro Macro\r\n' create macro for FTC test\r\n'\r\n'
+      Keyboard Shortcut: Ctrl+e\r\n'\r\n    Range(\"B13\").Select\r\n    ActiveCell.FormulaR1C1
+      = \"testing macro\"\r\n    Range(\"C13\").Select\r\n    ActiveCell.FormulaR1C1
+      = \"blablabla\"\r\n    Range(\"D13\").Select\r\nEnd Sub\r\n"
+    object_name: macro
 properties:
   description:
     description: Action was successful or not.
