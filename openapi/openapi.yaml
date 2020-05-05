@@ -101,6 +101,10 @@ tags:
     x-displayName: Analysis Result
     description: |
       <SchemaDefinition schemaRef="#/components/schemas/AnalysisResult" />
+  - name: batchResultModel
+    x-displayName: Batch Analysis Result
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/BatchResponse" />      
   - name: fileInfoModel
     x-displayName: File Information
     description: |
@@ -109,6 +113,18 @@ tags:
     x-displayName: Metascan Report
     description: |
       <SchemaDefinition schemaRef="#/components/schemas/MetascanReport" />
+  - name: dlpReportModel
+    x-displayName: P-DLP Report
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/DLPResponse" />    
+  - name: deepCDRReportModel
+    x-displayName: Deep CDR Report
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/DeepCDRDetails" />   
+  - name: vulnReportModel
+    x-displayName: Vulnerability Report
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/VulnerabilityResponse" />          
 x-tagGroups:
   - name: User
     tags:
@@ -127,8 +143,12 @@ x-tagGroups:
   - name: Models
     tags:
       - analysisResultModel
+      - batchResultModel
       - fileInfoModel
+      - deepCDRReportModel
       - metascanReportModel
+      - dlpReportModel
+      - vulnReportModel
 paths:
   /login:
     $ref: paths/login.yaml
