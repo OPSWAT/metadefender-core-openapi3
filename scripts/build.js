@@ -8,10 +8,6 @@ var configFilePath = 'config/config.yaml'
 var config = {
     "source": "./openapi/openapi.yaml",
     "output": "./out",
-    "redoc":{
-        "generate": true,
-        "withSnippets": true
-    },
     "snippets": {
         "generate": false
     },
@@ -136,10 +132,12 @@ var main = function() {
     if (config.snippets.generate) {        
         
         generateSnippets(fullSpec, destinationFolder + "/code_samples", configFilePath);
-        attachSnippets(openAPISpecFolder + "/paths", destinationFolder + "/openapi", destinationFolder + "/code_samples", config);
-                
-        bundleFullSpecFile(destinationFolder + "/openapi/openapi.yaml", destinationFolder + "/openapi-with-snippets", "metadefender-core-openapi3.docs.json");         
-        fullSpec = destinationFolder + "/openapi-with-snippets/metadefender-core-openapi3.docs.json";
+        if (config.snippets.attachSnippets){
+            attachSnippets(openAPISpecFolder + "/paths", destinationFolder + "/openapi", destinationFolder + "/code_samples", config);
+            bundleFullSpecFile(destinationFolder + "/openapi/openapi.yaml", destinationFolder + "/openapi-with-snippets", "metadefender-core-openapi3.docs.json");         
+            fullSpec = destinationFolder + "/openapi-with-snippets/metadefender-core-openapi3.docs.json";
+        }
+        
     }
     
 
@@ -151,8 +149,12 @@ var main = function() {
         }
     }
 
-    if (config.docs.generate) {        
-        buildDocs(fullSpec, destinationFolder + "/html")        
+    if (config.docs.generate) {      
+        if (config.docs.bundleSnippets) {
+            buildDocs(fullSpec, destinationFolder + "/html")        
+        } else {
+            buildDocs(destinationFolder + "/openapi-no-snippets/metadefender-core-openapi3.docs.json", destinationFolder + "/html")        
+        }
     }
 
     if (config.pdf.generate) {
