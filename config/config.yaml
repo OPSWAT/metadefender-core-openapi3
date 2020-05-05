@@ -1,11 +1,9 @@
-source: '../openapi/openapi.yaml'
-output: '../out'
-redoc: 
-  generate: true
-  snippets: true
+source: '../openapi/openapi.yaml' ### provide the original file. 
+output: '../out'                  ### output location               
 snippets:
-  generate: true
-  langs:
+  generate: true                  ### feature toggle for: generating code samples. by default are generated in `out/code_samples`
+  attachSnippets: true            ### feature toggle for: generating an openapi spec with attached code snippets. by default is generated in `out/openapi-with-snippets/metadefender-core-openapi3.docs.json`
+  langs:                          ### list of the languages supported. enable/disable (uncomment/comment) which you want active or not. 
     - c_libcurl             # (default)
     - csharp_restsharp      #(default)
     #- go_native             #(default)
@@ -30,12 +28,12 @@ snippets:
     #- shell_wget
     #- swift_nsurlsession    #(default)
 docs:
-    generate: true
-    bundleSnippets: true
+    generate: true              ### feature toggle for: generate the html documentation
+    bundleSnippets: true        ### feature toggle for: add code snippets (samples) to the html docs. Requires for snippets.generate is enabled as well.
 sdks:
-  generate: true
-  updateInfo: true
-  langs:
+  generate: false               ### feature toggle for: generate SDKs. default location would be `out/sdks`   
+  updateInfo: false             ### feature toggle for: update the Info description block with the list of SDKs (links to Github location), Dependency on `github.sdks.update` and `github.pages.update`
+  langs:                        ### list of the languages supported. enable/disable (uncomment/comment) which you want active or not. 
     - python
     - c
     - cpp-qt5-client
@@ -49,13 +47,10 @@ sdks:
     - powershell
     - ruby
     - scala-gatling      
-pdf:
+pdf:                            ### Not supported for now. 
   generate: false
 github:
-  sdks:
-    update: true
+  sdks:                         
+    update: true                ### feature toggle for: push the SDKs to github `repo/gh-pages/out/sdks`. Travis will do that as part of the deploy process. dependency on `sdks.generate`
   pages:
-    update: true
-
-
-        
+    update: true                ### feature toggle for: push the html docs to github `repo/gh-pages/out/sdks`. Travis will do that as part of the deploy process. dependency on `docs.generate`
