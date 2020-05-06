@@ -31,8 +31,8 @@ docs:
     generate: true              ### feature toggle for: generate the html documentation
     bundleSnippets: true        ### feature toggle for: add code snippets (samples) to the html docs. Requires for snippets.generate is enabled as well.
 sdks:
-  generate: false               ### feature toggle for: generate SDKs. default location would be `out/sdks`   
-  updateInfo: false             ### feature toggle for: update the Info description block with the list of SDKs (links to Github location), Dependency on `github.sdks.update` and `github.pages.update`
+  generate: true                ### feature toggle for: generate SDKs. default location would be `out/sdks`   
+  updateInfo: true              ### feature toggle for: update the Info description block with the list of SDKs (links to Github location), Dependency on `github.sdks.update` and `github.pages.update`
   langs:                        ### list of the languages supported. enable/disable (uncomment/comment) which you want active or not. 
     - python
     - c
