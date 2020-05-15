@@ -47,6 +47,11 @@ sdks:
     - powershell
     - ruby
     - scala-gatling      
+    - python-flask
+    - nodejs-express-server
+    - java-inflector
+    - jaxrs-cxf 
+    - jaxrs-jersey
 pdf:                            ### Not supported for now. 
   generate: false
 github:
