@@ -1,0 +1,51 @@
+get:
+  tags:
+    - config
+  summary: Webhook get configuration
+  description: |
+    Getting settings supported for webhook mode
+  operationId: configWebhook
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  responses:
+    '200':
+      description: Request processed successfully.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AdminConfigWebhook.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '405':
+      $ref: ../components/responses/Error405.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+put:
+  tags:
+    - config
+  summary: Webhook set configuration
+  description: |
+    Modifying settings supported for webhook mode
+  operationId: configUpdateWebhook
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+  requestBody:
+    content: 
+      application/json: 
+        schema:
+          $ref: ../components/schemas/AdminConfigWebhook.yaml
+  responses:
+    '200':
+      description: Request processed successfully.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AdminConfigWebhook.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '404':
+      $ref: ../components/responses/Error404.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
+  security:
+    - apikey: []

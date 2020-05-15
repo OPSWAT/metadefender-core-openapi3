@@ -172,6 +172,8 @@ paths:
     $ref: paths/admin@config@update.yaml
   /admin/config/skip:
     $ref: paths/admin@config@skip.yaml
+  /admin/config/webhook:
+    $ref: paths/admin@config@webhook.yaml
   '/admin/engine/{engineId}/pin':
     $ref: 'paths/admin@engine@{engineId}@pin.yaml'
   '/admin/engine/{engineId}/unpin':
@@ -198,6 +200,8 @@ paths:
     $ref: paths/file.yaml
   '/file/{data_id}':
     $ref: 'paths/file@{data_id}.yaml'
+  '/file/webhook/{data_id}':
+    $ref: 'paths/file@webhook@{data_id}.yaml'
   '/file/{data_id}/cancel':
     $ref: 'paths/file@{data_id}@cancel.yaml'
   /file/rules:

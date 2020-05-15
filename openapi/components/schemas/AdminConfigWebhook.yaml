@@ -1,0 +1,23 @@
+description: Webhook configuration details.
+type: object
+properties:
+  maxretrytime:
+    description: |
+      Number of allowed retries sending callback to client when failed.
+
+      > _**For example**_: maxretrytime= 3
+      
+      Sending callback failed for some reasons
+        * 1st retry triggered after delayduration (ms)
+        * 2nd retry triggered after delayduration+ delayprogression (ms)
+        * 3rd retry triggered after delayduration+ 2*delayprogression (ms)
+    type: number
+    example: 3
+  delayduration:
+    description: in milliseconds
+    type: number
+    example: 1000
+  deplayprogression:
+    description: in milliseconds
+    type: number
+    example: 1000

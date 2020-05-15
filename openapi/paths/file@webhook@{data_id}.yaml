@@ -1,0 +1,47 @@
+get:
+  tags:
+    - analysis
+  summary: Query webhook status
+  description: |
+    Prior to being notified by Core when webhooks mode is set, client can anytime ask Core for file / batch processing webhooks status.
+  operationId: webhookStatus
+  parameters:
+    - $ref: ../components/parameters/apikey.yaml
+    - name: data_id
+      description: Either `data_id` or `batch_id`. 
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Webhooks status is fetched successfully.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data_id:
+                description: The file submission identifier
+                type: string
+                example: j2939fh3ifoqkhwhr3h9h1h0re
+              request_time:
+                description: A timestamp when the request has been made.
+                type: string
+                example: ""
+              status_code:
+                description: What was the returned HTTP status code. 
+                type: integer
+                example: 200
+              url: 
+                description: What was the called URL (should match the `callbackurl` header).
+                type: string
+                example: "https://apigateway.corporate.com/metadefender/callbackurl"
+    '400':
+      $ref: ../components/responses/Error400.yaml
+    '403':
+      $ref: ../components/responses/Error403.yaml
+    '404':
+      $ref: ../components/responses/Error404.yaml
+    '500':
+      $ref: ../components/responses/Error500.yaml
