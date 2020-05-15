@@ -1,0 +1,92 @@
+controllerPackage: org.openapitools.controllers
+modelPackage:  org.openapitools.model
+swaggerUrl: ./src/main/swagger/swagger.yaml
+modelMappings:
+  # to enable explicit mappings, use this syntax:
+  DefinitionFromSwaggerSpecification: fully.qualified.path.to.Model
+  AVEngineScanReport : org.openapitools.model.AVEngineScanReport
+AdminConfigSession : org.openapitools.model.AdminConfigSession
+AdminConfigUpdate : org.openapitools.model.AdminConfigUpdate
+AdminConfigUpdateDisabledupdate : org.openapitools.model.AdminConfigUpdateDisabledupdate
+AdminConfigWebhook : org.openapitools.model.AdminConfigWebhook
+AnalysisResult : org.openapitools.model.AnalysisResult
+AnalysisResultProcessInfo : org.openapitools.model.AnalysisResultProcessInfo
+AnalysisResultProcessInfoPostProcessing : org.openapitools.model.AnalysisResultProcessInfoPostProcessing
+BatchId : org.openapitools.model.BatchId
+BatchResponse : org.openapitools.model.BatchResponse
+BatchResponseBatchFiles : org.openapitools.model.BatchResponseBatchFiles
+BatchResponseBatchFilesFilesInBatch : org.openapitools.model.BatchResponseBatchFilesFilesInBatch
+BatchResponseBatchFilesProcessInfo : org.openapitools.model.BatchResponseBatchFilesProcessInfo
+BatchResponseProcessInfo : org.openapitools.model.BatchResponseProcessInfo
+BatchResponseScanResults : org.openapitools.model.BatchResponseScanResults
+DLPResponse : org.openapitools.model.DLPResponse
+DLPResponseDlpInfo : org.openapitools.model.DLPResponseDlpInfo
+DLPResponseDlpInfoHits : org.openapitools.model.DLPResponseDlpInfoHits
+DLPResponseDlpInfoHitsCcn : org.openapitools.model.DLPResponseDlpInfoHitsCcn
+DLPResponseDlpInfoMetadataRemoval : org.openapitools.model.DLPResponseDlpInfoMetadataRemoval
+DLPResponseDlpInfoRedact : org.openapitools.model.DLPResponseDlpInfoRedact
+DLPResponseDlpInfoWatermark : org.openapitools.model.DLPResponseDlpInfoWatermark
+DLPRuleMatchResult : org.openapitools.model.DLPRuleMatchResult
+DeepCDRDetails : org.openapitools.model.DeepCDRDetails
+DeepCDRDetailsDetails : org.openapitools.model.DeepCDRDetailsDetails
+FileInformation : org.openapitools.model.FileInformation
+InlineObject : org.openapitools.model.InlineObject
+InlineObject1 : org.openapitools.model.InlineObject1
+InlineObject2 : org.openapitools.model.InlineObject2
+InlineResponse200 : org.openapitools.model.InlineResponse200
+InlineResponse2001 : org.openapitools.model.InlineResponse2001
+InlineResponse20010 : org.openapitools.model.InlineResponse20010
+InlineResponse20011 : org.openapitools.model.InlineResponse20011
+InlineResponse20012 : org.openapitools.model.InlineResponse20012
+InlineResponse20013 : org.openapitools.model.InlineResponse20013
+InlineResponse2002 : org.openapitools.model.InlineResponse2002
+InlineResponse2003 : org.openapitools.model.InlineResponse2003
+InlineResponse2004 : org.openapitools.model.InlineResponse2004
+InlineResponse2005 : org.openapitools.model.InlineResponse2005
+InlineResponse2006 : org.openapitools.model.InlineResponse2006
+InlineResponse2007 : org.openapitools.model.InlineResponse2007
+InlineResponse2007Issues : org.openapitools.model.InlineResponse2007Issues
+InlineResponse2007IssuesGeneral : org.openapitools.model.InlineResponse2007IssuesGeneral
+InlineResponse2007IssuesSource : org.openapitools.model.InlineResponse2007IssuesSource
+InlineResponse2008 : org.openapitools.model.InlineResponse2008
+InlineResponse2009 : org.openapitools.model.InlineResponse2009
+InlineResponse400 : org.openapitools.model.InlineResponse400
+InlineResponse403 : org.openapitools.model.InlineResponse403
+InlineResponse500 : org.openapitools.model.InlineResponse500
+LicenseInformation : org.openapitools.model.LicenseInformation
+MetascanReport : org.openapitools.model.MetascanReport
+MetascanReportScanDetails : org.openapitools.model.MetascanReportScanDetails
+NewUserRoleRequest : org.openapitools.model.NewUserRoleRequest
+NewUserRoleRequestRights : org.openapitools.model.NewUserRoleRequestRights
+NewUserRoleResponse : org.openapitools.model.NewUserRoleResponse
+NewUserRoleResponseAllOf : org.openapitools.model.NewUserRoleResponseAllOf
+ProcessingResultsIndexEnum : org.openapitools.model.ProcessingResultsIndexEnum
+ProcessingResultsStringEnum : org.openapitools.model.ProcessingResultsStringEnum
+RolePermissionObject : org.openapitools.model.RolePermissionObject
+ScanResultEnum : org.openapitools.model.ScanResultEnum
+SkipList : org.openapitools.model.SkipList
+StatNodesEngines : org.openapitools.model.StatNodesEngines
+StatNodesIssues : org.openapitools.model.StatNodesIssues
+StatNodesStatuses : org.openapitools.model.StatNodesStatuses
+UserLogin : org.openapitools.model.UserLogin
+UserRequest : org.openapitools.model.UserRequest
+UserRequestAllOf : org.openapitools.model.UserRequestAllOf
+UserResponse : org.openapitools.model.UserResponse
+VulnerabilityResponse : org.openapitools.model.VulnerabilityResponse
+VulnerabilityResponseResult : org.openapitools.model.VulnerabilityResponseResult
+VulnerabilityResponseResultDetails : org.openapitools.model.VulnerabilityResponseResultDetails
+VulnerabilityResponseResultDetailsCvss : org.openapitools.model.VulnerabilityResponseResultDetailsCvss
+VulnerabilityResponseResultDetectedProduct : org.openapitools.model.VulnerabilityResponseResultDetectedProduct
+VulnerabilityResponseResultDetectedProductProduct : org.openapitools.model.VulnerabilityResponseResultDetectedProductProduct
+VulnerabilityResponseResultDetectedProductVendor : org.openapitools.model.VulnerabilityResponseResultDetectedProductVendor
+VulnerabilityResponseResultDetectedProductVersionData : org.openapitools.model.VulnerabilityResponseResultDetectedProductVersionData
+VulnerabilityResponseResultVulnerabilites : org.openapitools.model.VulnerabilityResponseResultVulnerabilites
+YaraReport : org.openapitools.model.YaraReport
+YaraSourcesObject : org.openapitools.model.YaraSourcesObject
+YaraSourcesObjectHttpSources : org.openapitools.model.YaraSourcesObjectHttpSources
+YaraSourcesObjectLocalSources : org.openapitools.model.YaraSourcesObjectLocalSources
+
+entityProcessors:
+  - json
+  - xml
+  - yaml

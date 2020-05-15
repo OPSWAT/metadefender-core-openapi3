@@ -1,0 +1,5363 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: feedback@opswat.com
+    name: API Support
+    url: https://github.com/OPSWAT/metadefender-core-openapi3
+  description: "## Developer Guide\nThis is the API documentation for *MetaDefender\
+    \ Core Public API*.  If you would like to evaluate or have any questions about\
+    \ this documentation, please contact us via our [Contact Us](https://opswat.com/contact)\
+    \ form. \n## How to Interact with MetaDefender Core using REST\nBeginning with\
+    \ MetaDefender Core 4.x, OPSWAT recommends using the JSON-based REST API. The\
+    \ available methods are documented below.\n> _**Note**:_ MetaDefender API doesn't\
+    \ support chunk upload, however is recommended to stream the files to MetaDefender\
+    \ as part of the upload process. \n---\n## File Analysis Process\n\n  MetaDefender's\
+    \ main functionality is to analyze large volumes with a high throughput. Depending\
+    \ on the configuration and licensed technologies, the analysis times can vary.\
+    \ \n  Below is a brief description of the API integration flow:\n\n  1. Upload\
+    \ a file for analysis (`POST /file`), which returns the `data_id`: [File Analysis](#operation/fileAnalysisPost)).\
+    \ \n    \n    > _**Note**:_ The performance depends on:      \n    > - number\
+    \ of nodes (scaling)\n    > - number of engines per node\n    > - type of file\
+    \ to be scanned\n    > - Metadefender Core and nodes' hardware\n  \n\n  2. You\
+    \ have 2 ways to retrieve the analysis report: \n    - **Polling**: Fetch the\
+    \ result with previously received data_id (`GET /file/{data_id}` resource) until\
+    \ scan result belonging to data_id doesn't reach the 100 percent progress_percentage:\
+    \ ( [Fetch processing result](#operation/userLogin))\n  \n    > _**Note**:_ Too\
+    \ many data_id requests can reduce performance. It is enough to just check every\
+    \ few hundred milliseconds.\n    \n    - **Callbackurl**: Specify a callbackurl\
+    \ that will be called once the analysis is complete. \n\n  3. Retrieve the analysis\
+    \ results anytime after the analysis is completed with hash for files (md5, sha1,\
+    \ sha256) by calling [Fetch processing result](#operation/userLogin). \n    -\
+    \ The hash can be found in the scan results\n\n  4. Retrieve processed file (sanitized,\
+    \ redacted, watermarked, etc.) after the analysis is complete. \n    > _**Note**:_\
+    \ Based on the configured retention policy, the files might be available for retrieval\
+    \ at a later time. \n\n---\nOPSWAT provides some sample codes on [GitHub](https://github.com/OPSWAT)\
+    \ to make it easier to understand how the MetaDefender REST API works.\n"
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: https://onlinehelp.opswat.com/policies/
+  title: MetaDefender Core
+  version: v4.18.0
+  x-logo:
+    url: https://d7umqicpi7263.cloudfront.net/img/product/9c273549-7359-4582-9ead-baef1f3c4dc9/a6bea41b-3a16-45be-9e04-07a5a9616737.png
+    altText: OPSWAT MetaDefender logo
+externalDocs:
+  description: Official product documentation
+  url: https://onlinehelp.opswat.com/corev4
+servers:
+- url: http://localhost:8008
+tags:
+- description: "### Authentication APIs\nUser authentication is done via username\
+    \ & password. \nAdditional integrations are available within the product: \n \
+    \ - **LDAP** integration\n  - **Active Directory** integration\n  - **SAML** integration\
+    \ (starting with v4.18.0)\n"
+  name: auth
+- description: "### File analysis APIs\nSubmit each file to MetaDefender individually\
+    \ or group them in batches.  Each file submission will return a `data_id` which\
+    \ will be the unique identifier used to retrieve the analysis results. \n**Important**:\
+    \ Even though one file is being submitted, if MetaDefender is configured to extract\
+    \ the files, all compound file types (archives, Office documents, etc.) will be\
+    \ extracted and each file within will be analyzed as a separate entry.\n  - This\
+    \ means that if you submit an archive with 100 files in it, MetaDefender will\
+    \ process 101 files: original file as it is and each of the 100 child files \n\
+    \    - Note that by opening the files, detection ratio can increase even by 30%.\
+    \ \n\n> _**Note**:_ MetaDefender API doesn't support chunk upload. You shouldn't\
+    \ load the file in memory, is recommended to stream the files to MetaDefender\
+    \ as part of the upload process. \n"
+  name: analysis
+- description: Health check and statistics about MetaDefender usage.
+  name: stats
+- description: Yara engine configuration and source management APIs.
+  name: yara
+- description: |
+    <SchemaDefinition schemaRef="#/components/schemas/AnalysisResult" />
+  name: analysisResultModel
+  x-displayName: Analysis Result
+- description: "<SchemaDefinition schemaRef=\"#/components/schemas/BatchResponse\"\
+    \ />      \n"
+  name: batchResultModel
+  x-displayName: Batch Analysis Result
+- description: |
+    <SchemaDefinition schemaRef="#/components/schemas/FileInformation" />
+  name: fileInfoModel
+  x-displayName: File Information
+- description: |
+    <SchemaDefinition schemaRef="#/components/schemas/MetascanReport" />
+  name: metascanReportModel
+  x-displayName: Metascan Report
+- description: "<SchemaDefinition schemaRef=\"#/components/schemas/DLPResponse\" />\
+    \    \n"
+  name: dlpReportModel
+  x-displayName: P-DLP Report
+- description: "<SchemaDefinition schemaRef=\"#/components/schemas/DeepCDRDetails\"\
+    \ />   \n"
+  name: deepCDRReportModel
+  x-displayName: Deep CDR Report
+- description: "<SchemaDefinition schemaRef=\"#/components/schemas/VulnerabilityResponse\"\
+    \ />          \n"
+  name: vulnReportModel
+  x-displayName: Vulnerability Report
+paths:
+  /login:
+    post:
+      description: Initiate a new session. Required for using protected REST APIs.
+      operationId: userLogin
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object'
+        content:
+          application/json:
+            example:
+              user: admin
+              password: admin
+            schema:
+              properties:
+                user:
+                  description: Username
+                  type: string
+                password:
+                  description: User's password
+                  type: string
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                session_id: a5dd6114dbd14a3b8f4577b7b54e6b0a
+              schema:
+                $ref: '#/components/schemas/UserLogin'
+          description: OK
+          links:
+            GetAPIKey:
+              $ref: '#/components/links/GetAPIKey'
+        "403":
+          content:
+            application/json:
+              example:
+                err: Failed to login
+              schema:
+                $ref: '#/components/schemas/inline_response_403'
+          description: Invalid credentials
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Login
+      tags:
+      - auth
+      x-eov-operation-handler: controllers/AuthController
+  /logout:
+    post:
+      description: Destroy session for not using protected REST APIs.
+      operationId: userLogout
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                response: Logout success
+          description: OK
+        "400":
+          content:
+            application/json:
+              example:
+                err: Logout error
+          description: OK
+        "403":
+          content:
+            application/json:
+              example:
+                response: Access denied
+          description: Invalid user information.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Logout
+      tags:
+      - auth
+      x-eov-operation-handler: controllers/AuthController
+  /admin/license/activation:
+    post:
+      description: This API initiates an online activation of the deployment.  In
+        case of error, check the application logs for more details.
+      operationId: licenseActivation
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/licenseActivated'
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                success: true
+          description: Request processed successfully
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Activate license
+      tags:
+      - license
+      x-eov-operation-handler: controllers/LicenseController
+  /admin/license:
+    get:
+      description: Fetch all details about the licensing status of the product.
+      operationId: licenseGet
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseInformation'
+          description: Information about the licensed product (product type, number
+            of activations, deploymentId, expiration date and days left)
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Get Current License Information
+      tags:
+      - license
+      x-eov-operation-handler: controllers/LicenseController
+    post:
+      description: "Uploading a license file to the Metadefender Core.\n\nThere are\
+        \ two ways two obtain a license key file:\n - via https://portal.opswat.com/activation\
+        \ portal\n - via activation server REST API: https://activation.dl.opswat.com/activation?key=%activation_key%&deployment=%deployment_unique_ID%&quantity=%quantity%\n\
+        \nDeployment unique ID can be fetched via Get Current License Information\
+        \ API.      "
+      operationId: licenseUpload
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/licenseFile'
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                success: true
+          description: Request processed successfully
+        "400":
+          content:
+            application/json:
+              example:
+                err: Invalid license
+          description: Invalid license file
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Upload license key
+      tags:
+      - license
+      x-eov-operation-handler: controllers/LicenseController
+  /admin/config/auditlog:
+    put:
+      description: "Setting audit records (update history) clean up time (clean up\
+        \ records older than). \n> _**Note**_:The clean up range is defined in `hours`.\
+        \ \n"
+      operationId: configAuditLog
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/adminCleanup'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+          description: Request processed successfully
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Audit clean up
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+  /admin/config/quarantine:
+    put:
+      description: "Setting quarantine clean up time (clean up records older than).\
+        \ \n> _**Note**_:The clean up range is defined in `hours`. \n"
+      operationId: configQuarantine
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/adminCleanup'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+          description: Request processed successfully
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Quarantine clean up
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+  /admin/config/sanitize:
+    put:
+      description: "Setting sanitized files clean up time (clean up records older\
+        \ than). \n> _**Note**_:The clean up range is defined in `minutes`. \n"
+      operationId: configSanitizedRepo
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object_1'
+        content:
+          application/json:
+            schema:
+              properties:
+                maxage:
+                  description: The number of minutes of data retention. Anything older
+                    than this number will be deleted.
+                  example: 360
+                  type: integer
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+          description: Request processed successfully
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Sanitized files clean up
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+  /admin/config/scanhistory:
+    put:
+      description: "Setting processing history clean up time (clean up records older\
+        \ than). \n> _**Note**_:The clean up range is defined in `hours`. \n"
+      operationId: configScanHistory
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/adminCleanup'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+          description: Request processed successfully
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Processing history clean up
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+  /admin/config/session:
+    put:
+      description: |
+        Configure settings for session generated upon a successful login
+        See more at [Login](#operation/userLogin)
+      operationId: configSession
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminConfigSession'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminConfigSession'
+          description: Request processed successfully
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Session settings
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+  /admin/config/update:
+    put:
+      description: "Setting update frequency for all modules and engines. \n> _**Note**_:The\
+        \ clean up range is defined in `minutes`. \n"
+      operationId: configUpdate
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminConfigUpdate'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminConfigUpdate'
+          description: Request processed successfully
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Modules Update Source and Frequency
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+  /admin/config/skip:
+    get:
+      description: Get the list of hashes whitelisted or blacklisted.
+      operationId: configGetSkipHash
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkipList'
+          description: A list of all skip/white/black-listed hashes.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Get 'skip by hash' list
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+    put:
+      description: |
+        Modify one (or more) of the sources for the Yara Engine.
+        The request body containing whitelist's rules in array under "whitelist" key; Each object in the array represents a whitelist: comment: same comment for detailed more information this whitelist settings. engines: containing engine id's strings in array hash: md5, sha1 or sha256 hash
+      operationId: configUpdateSkipHash
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/skipListRequestBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkipList'
+          description: A list of all skip/white/black-listed hashes.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Modify 'skip by hash' list
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+  /admin/config/webhook:
+    get:
+      description: |
+        Getting settings supported for webhook mode
+      operationId: configWebhook
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminConfigWebhook'
+          description: Request processed successfully.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Webhook get configuration
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+    put:
+      description: |
+        Modifying settings supported for webhook mode
+      operationId: configUpdateWebhook
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminConfigWebhook'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminConfigWebhook'
+          description: Request processed successfully.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Webhook set configuration
+      tags:
+      - config
+      x-eov-operation-handler: controllers/ConfigController
+  /admin/engine/{engineId}/pin:
+    post:
+      description: Pin engines to prevent applying automatic updates on them. Manual
+        updates still can be applied.
+      operationId: enginePin
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: |-
+          Pin engine or database to prevent applying automatic updates on it.
+          (If the type is not defined both engine and database will be pinned.)
+        in: header
+        name: type
+        required: false
+        schema:
+          enum:
+          - engine
+          - database
+          example: engine
+          type: string
+      - description: The unique engine identifier
+        in: path
+        name: engineId
+        required: true
+        schema:
+          example: clamav_7_linux
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+          description: Request processed successfully
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Pin engine to prevent auto-updates
+      tags:
+      - engines
+      x-eov-operation-handler: controllers/EnginesController
+  /admin/engine/{engineId}/unpin:
+    post:
+      description: Unpin engines so automatic updates will be applied on them.
+      operationId: engineUnpin
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: |-
+          Unpin engine or database to applying automatic updates on it.
+          (If it is not defined both engine and database will be unpinned.)
+        in: header
+        name: type
+        required: false
+        schema:
+          enum:
+          - engine
+          - database
+          example: engine
+          type: string
+      - description: The unique engine identifier
+        in: path
+        name: engineId
+        required: true
+        schema:
+          example: clamav_7_linux
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_3'
+          description: Request processed successfully
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Unpin engine to prevent auto-updates
+      tags:
+      - engines
+      x-eov-operation-handler: controllers/EnginesController
+  /admin/engine/{engineId}/enable:
+    post:
+      description: Enable to use the selected engine on the nodes.
+      operationId: engineEnable
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: The unique engine identifier
+        in: path
+        name: engineId
+        required: true
+        schema:
+          example: clamav_7_linux
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_4'
+          description: Request processed successfully
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Enable engines
+      tags:
+      - engines
+      x-eov-operation-handler: controllers/EnginesController
+  /admin/engine/{engineId}/disable:
+    post:
+      description: Disable to use the selected engines on the nodes.
+      operationId: engineDisable
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: The unique engine identifier
+        in: path
+        name: engineId
+        required: true
+        schema:
+          example: clamav_7_linux
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_5'
+          description: Request processed successfully
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Disable engines
+      tags:
+      - engines
+      x-eov-operation-handler: controllers/EnginesController
+  /admin/import:
+    post:
+      description: Import configuration from file.
+      operationId: adminImport
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example: |-
+                {
+                  "config": {
+                      "policy.rule.rule": {
+                          "items": [
+                              {
+                                  "active": true,
+                                  "allow_cert": false,
+                                  "allow_cert.cert": "None",
+                ... }
+              format: file
+              type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_6'
+          description: Request processed successfully
+        "304":
+          content:
+            application/json:
+              schema:
+                example: {}
+                type: object
+          description: The configuration has not changed
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Import configuration
+      tags:
+      - admin
+      x-eov-operation-handler: controllers/AdminController
+  /admin/user:
+    post:
+      description: ""
+      operationId: userCreate
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: Request processed successfully.
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Create user
+      tags:
+      - admin
+      x-eov-operation-handler: controllers/AdminController
+  /admin/role:
+    post:
+      description: Add a new user role to the system.
+      operationId: roleCreate
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUserRoleRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewUserRoleResponse'
+          description: Request processed successfully
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Create new role
+      tags:
+      - admin
+      x-eov-operation-handler: controllers/AdminController
+  /user/changepassword:
+    post:
+      description: Modify the current password for the user identified by apikey
+      operationId: userChangePass
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/inline_object_2'
+        content:
+          application/json:
+            example:
+              old_password: admin
+              new_password: "123456"
+            schema:
+              properties:
+                old_password:
+                  description: The current password in plain text
+                  type: string
+                new_password:
+                  description: The new password in plain text
+                  type: string
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                success: true
+          description: Request processed successfully
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Change Password
+      tags:
+      - auth
+      x-eov-operation-handler: controllers/AuthController
+  /admin/config/yara/sources:
+    get:
+      description: Retrieve a list of all sources for the Yara Engine.
+      operationId: yaraSourcesGet
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YaraSourcesObject'
+          description: A list of Yara Engine sources.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Get Yara sources
+      tags:
+      - yara
+      x-eov-operation-handler: controllers/YaraController
+    put:
+      description: Modify one (or more) of the sources for the Yara Engine.
+      operationId: yaraSourcesPut
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/yaraRequestBody'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YaraSourcesObject'
+          description: A list of Yara Engine sources.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Modify Yara sources
+      tags:
+      - yara
+      x-eov-operation-handler: controllers/YaraController
+  /yara/package:
+    get:
+      description: Get status of Yara package generation.
+      operationId: yaraPackageStatus
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_7'
+          description: Request processed successfully.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Yara Generation Status
+      tags:
+      - yara
+      x-eov-operation-handler: controllers/YaraController
+  /yara/generate:
+    put:
+      description: Generate a new package based on the new added sources.
+      operationId: yaraPackageGenerate
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_7'
+          description: Request processed successfully.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      security:
+      - apikey: []
+      summary: Generate Yara package
+      tags:
+      - yara
+      x-eov-operation-handler: controllers/YaraController
+  /file:
+    post:
+      callbacks:
+        onFinish:
+          '{$request.header.callbackurl}':
+            post:
+              description: "Needs to be a `PUT` request and in the body of the file\
+                \ will be the entire [Analysis Result](#operation/AnalysisResult)\
+                \ when data is sent, it will be sent to the `callbackUrl` provided\
+                \               \n"
+              operationId: onFinishCallback
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/AnalysisResult'
+                description: Analysis Result
+              responses:
+                "200":
+                  description: |
+                    Analysis was successfully submitted
+                "400":
+                  description: "Callback url is invalid                \n"
+              summary: File Analysis callback
+              x-callback-request: true
+      description: |-
+        ## Scanning a file using a specified workflow.
+        Scan is done asynchronously and each scan request is tracked by data id of which result can be retrieved by API Fetch Scan Result.
+        > _**Note**_: Chunked transfer encoding (applying header Transfer-Encoding: Chunked) is **not supported** on `/file` API.
+      operationId: fileAnalysisPost
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: The name of the submitted file
+        in: header
+        name: filename
+        required: false
+        schema:
+          type: string
+      - description: if local file scan is enabled the path to the file (see Security
+          rule configuration)
+        in: header
+        name: filepath
+        required: false
+        schema:
+          type: string
+      - description: |
+          user_agent header used to identify (and limit) access to a particular rule. For rule selection, `rule` header should be used.
+        in: header
+        name: user_agent
+        required: false
+        schema:
+          type: string
+      - description: "Select rule for the analysis, if no header given the default\
+          \ rule will be selected (URL encoded string of rule name)      \n"
+        in: header
+        name: rule
+        required: false
+        schema:
+          type: string
+      - description: name of the selected workflow (deprecated, use "rule" header
+          parameter instead)
+        in: header
+        name: workflow
+        required: false
+        schema:
+          type: string
+      - description: Batch id to scan with, coming from `Initiate Batch` (If it is
+          not given, it will be a single file scan.)
+        in: header
+        name: batch
+        required: false
+        schema:
+          type: string
+      - description: |
+          password for archive ( URL encoded UTF-8 string)
+            Multiple passwords is also supported, format: archivepwd<X>
+              * X: Could be empty
+              * When having value, X must be a number >= 1
+            For example:
+              archivepwd1: "fox"
+              archivepwd2: "cow"
+              archivepwd3: "bear"
+        in: header
+        name: archivepwd
+        required: false
+        schema:
+          type: string
+      - description: |
+          could be utilized for:
+          Additional parameter for pre-defined post actions and external scanners (as a part of STDIN input).
+          Customized macro variable for watermarking text (Proactive DLP engine feature).
+          Additional context / verbose information for each file submission (appended into JSON response scan result).
+        in: header
+        name: metadata
+        required: false
+        schema:
+          type: string
+      - description: |
+          Client's URL where MetaDefender Core will notify scan result back to whenever scan is finished (webhooks model). See details at 8.1.11.1. Individual file processing
+            * Format: <protocol://><ip | domain>:<port></path>
+            * Example: http://10.0.1.100:8081/listenback
+        in: header
+        name: callbackurl
+        required: false
+        schema:
+          example: http://10.0.1.100:8081/listenback
+          format: uri
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/uploadFile'
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                data_id: 61dffeaa728844adbf49eb090e4ece0e
+              schema:
+                $ref: '#/components/schemas/inline_response_200_8'
+          description: Successful file submission
+        "400":
+          content:
+            application/json:
+              example:
+                err: Callback url is invalid.
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+          description: Callbackurl and/or apikey is invalid.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "411":
+          content:
+            application/json:
+              example:
+                err: Missing Content-Length header.
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+          description: Content-Length header is missing from the request.
+        "422":
+          content:
+            application/json:
+              example:
+                err: File is empty.
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+          description: Body input is empty.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+        "503":
+          content:
+            application/json:
+              example:
+                err: Server is too busy. Try again later.
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+          description: Server is too busy, scan queue is full. Try again later.
+      summary: Analyze File
+      tags:
+      - analysis
+      x-code-samples:
+      - lang: CURL
+        source:
+          $ref: ../code_samples/CURL/file/post.sh
+      - lang: JAVA
+        source:
+          $ref: ../code_samples/JAVA/file/post.txt
+      - lang: PYTHON
+        source:
+          $ref: ../code_samples/PYTHON/file/post.py
+      x-eov-operation-handler: controllers/AnalysisController
+  /file/{data_id}:
+    get:
+      description: |
+        Retrieve scan results.
+        Scan is done asynchronously and each scan request is tracked by a data ID. Initiating file scans and retrieving the results need to be done using two separate API calls. This request needs to be made multiple times until the scan is complete. Scan completion can be traced using `scan_results.progress_percentage` value from the response.
+      operationId: fileAnalysisGet
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - in: path
+        name: data_id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+          description: Entire analysis report generated by MetaDefender
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Fetch Analysis Result
+      tags:
+      - analysis
+      x-eov-operation-handler: controllers/AnalysisController
+  /file/webhook/{data_id}:
+    get:
+      description: |
+        Prior to being notified by Core when webhooks mode is set, client can anytime ask Core for file / batch processing webhooks status.
+      operationId: webhookStatus
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: Either `data_id` or `batch_id`.
+        in: path
+        name: data_id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_9'
+          description: Webhooks status is fetched successfully.
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Query webhook status
+      tags:
+      - analysis
+      x-eov-operation-handler: controllers/AnalysisController
+  /file/{data_id}/cancel:
+    post:
+      description: "When cancelling a file analysis, the connected analysis (e.g.\
+        \ files in an archive) that are still in progress will be cancelled also.\
+        \ \n\nThe cancelled analysis will be automatically closed.\n"
+      operationId: fileAnalysisCancel
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - in: path
+        name: data_id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                <<data_id>>: cancelled
+              schema:
+                type: object
+          description: Analysis was successfully cancelled.
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Cancel File Analysis
+      tags:
+      - analysis
+      x-eov-operation-handler: controllers/AnalysisController
+  /file/rules:
+    get:
+      description: |
+        Retrieve all available rules with their custom configurations.
+        Fetching available processing rules.
+      operationId: analysisRules
+      parameters:
+      - description: |
+          The user agent string value sent in the header (specified by the client).
+
+          Only those rules are returned, that:
+            * Match the client's user agent sent using the user_agent header, or
+            * Are not restricted to a specific user agent.
+
+          For details see KB article [What are Security Policies and how do I use them?](https://onlinehelp.opswat.com/corev4/What_are_Security_Policies_and_how_do_I_use_them_.html).
+        in: header
+        name: user_agent
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/inline_response_200_10'
+                type: array
+          description: Returns the list of available rules.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Fetching Available Analysis Rules
+      tags:
+      - analysis
+      x-eov-operation-handler: controllers/AnalysisController
+  /file/converted/{data_id}:
+    get:
+      description: |
+        Retrieve sanitized file based on the `data_id`
+      operationId: sanitizedFile
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: The data_id comes from the result of `Analyze a file`. In case
+          of sanitizing the content of an archive, the data_id of contained file can
+          be found in `Fetch analysis result`.
+        example: 8101abae27be4d63859c55d9e0ed0135
+        in: path
+        name: data_id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/octet-stream:
+              example: Sanitized(Hello World!)
+              schema:
+                format: binary
+                type: string
+          description: Returns the sanitized content.
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Download Sanitized Files
+      tags:
+      - analysis
+      x-eov-operation-handler: controllers/AnalysisController
+  /file/batch:
+    post:
+      description: Create a new batch and retrieve the batch_id
+      operationId: batchCreate
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: "Select rule for the analysis, if no header given the default\
+          \ rule will be selected (URL encoded string of rule name)      \n"
+        in: header
+        name: rule
+        required: false
+        schema:
+          type: string
+      - description: |
+          user_agent header used to identify (and limit) access to a particular rule. For rule selection, `rule` header should be used.
+        in: header
+        name: user_agent
+        required: false
+        schema:
+          type: string
+      - description: "Additional custom information (max 1024 bytes, URL encoded UTF-8\
+          \ string)      \n"
+        in: header
+        name: user-data
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                batch_id: 74c85f475147439bac4d33b181853923
+              schema:
+                $ref: '#/components/schemas/BatchId'
+          description: Batch created successfully.
+          links:
+            BatchId:
+              $ref: '#/components/links/GetBatchId'
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Initiate Batch
+      tags:
+      - batch
+      x-eov-operation-handler: controllers/BatchController
+  /file/{batchId}/cancel:
+    post:
+      description: "When cancelling a batch, the connected analysis that are still\
+        \ in progress will be cancelled also. \n\nThe cancelled batch will be closed.\
+        \      "
+      operationId: batchCancel
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: The batch identifier used to submit files in the batch and to
+          close the batch.
+        in: path
+        name: batchId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                <<batch_id>>: cancelled
+              schema:
+                type: object
+          description: Batch cancelled.
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+          description: Batch not found (invalid id)
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Cancel Batch
+      tags:
+      - batch
+      x-eov-operation-handler: controllers/BatchController
+  /file/batch/{batchId}/close:
+    post:
+      description: 'The batch will be closed and files can no longer can be added
+        to the current batch.      '
+      operationId: batchClose
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: The batch identifier used to submit files in the batch and to
+          close the batch.
+        in: path
+        name: batchId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResponse'
+          description: Batch successfully closed.
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Close Batch
+      tags:
+      - batch
+      x-eov-operation-handler: controllers/BatchController
+  /file/batch/{batchId}:
+    get:
+      description: Retrieve status report for the entire batch
+      operationId: batchStatus
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: The batch identifier used to submit files in the batch and to
+          close the batch.
+        in: path
+        name: batchId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResponse'
+          description: Batch progress paginated report (50 entries/page).
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Status of Batch Analysis
+      tags:
+      - batch
+      x-eov-operation-handler: controllers/BatchController
+  /file/batch/{batchId}/certificate:
+    get:
+      description: Download digitally signed status report for the entire batch
+      operationId: batchSignedResult
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      - description: The batch identifier used to submit files in the batch and to
+          close the batch.
+        in: path
+        name: batchId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            text/plain:
+              example: |
+                --- batch_id: 092876200fb54cfb80b6e3332c410ae9 user_data: the user data from the header from batch creation cert_sha1_fingerprint: <some cert serial value> batch_files:
+                  batch_count: 1
+                  files_in_batch:
+                  - data_id: 9112b225f0634f189a2bb46ec1a7826f
+                    display_name: New%20Text%20Document.txt
+                    file_size: 5
+                    scan_all_result_i: 0
+                    process_info:
+                      blocked_reason:
+                      result: Allowed
+                    sha256: f4191b3ec6ce93aaf712919a38e52815c5da9c91d2b141df920bc8bcb5cbb8e3
+                process_info:
+                  blocked_reason:
+                  file_type_skipped_scan: false
+                  profile: File scan
+                  result: Allowed
+                  user_agent: webscan
+                scan_results:
+                  scan_all_result_a: No Threat Detected
+                  scan_all_result_i: 0
+                  start_time: 2017-05-23T11:22:03.010Z
+                  total_avs: 14
+                  total_time: 995
+                ...
+                --- signature: 881d22220c4ca0557d7c7d5c5794d53a8a2780997cd65b27b6e7f1c099a15de03dbcb5edbeaea7aafa6099fab37be07017b39e3e3a7d66c550f44eb59a096c54d5b9555cb28198546fbec57c33b717751d333a09733d95dd876e2798d044c8caef828f4352b91f9a6d057253bb1a9461e0e0e0bf4313a80895998d645bebc81841ff3499589c80ffc4e8a190d1ec9b3e4126d86659d303b0e1f22d9289c9c4671d35532b55ad4620e048a78bb405b573897da63efdd5f036692c934a82d9bdc9b9862e7fea5e8abeeb1444be0689d50373c5c0632484950c0fe0337ed5f91bdf26986f7cff8aa3431bf4bc948fc127c16ba13ec679fe9f67e7586075c1f467454fa8cf40e9cd501291c95d862eb16f4477c17d1711294f0ff2b3a1140bd53dbd1fbb0846af6062e9e4e2e1a09af3448503ed11e342164e535fc268bf7d8fbc28ed946cd2bb8ea075f2295d2fa8392076d41608c3b5decf8fab3a5ec7de190f07583331e0517e5f361735cd59326622dc8b07b10a464028de781a063e408f918c1d5534329140f4e4dc1a717d808d6784410410b00d36cb9a345f5bbc11fa1c58ee28f8e7b863f3ea2c923ec5fb2ac29eaa4ddc0d6d9dfd3f16a97f207dc2858410a577c7f4a92ff01bad3229f5fcdb08e21df9869a113272aa9d96bfdfe8bfb3a50414c174e16a3504e5780c2718779b0757298546f287ef7ea86e67510d48a8 certificate: |
+                  -----BEGIN CERTIFICATE-----
+                  MIIGJzCCBA+gAwIBAgIBATANBgkqhkiG9w0BAQUFADCBsjELMAkGA1UEBhMCRlIx
+                  DzANBgNVBAgMBkFsc2FjZTETMBEGA1UEBwwKU3RyYXNib3VyZzEYMBYGA1UECgwP
+                  d3d3LmZyZWVsYW4ub3JnMRAwDgYDVQQLDAdmcmVlbGFuMS0wKwYDVQQDDCRGcmVl
+                  bGFuIFNhbXBsZSBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkxIjAgBgkqhkiG9w0BCQEW
+                  E2NvbnRhY3RAZnJlZWxhbi5vcmcwHhcNMTIwNDI3MTAzMTE4WhcNMjIwNDI1MTAz
+                  MTE4WjB+MQswCQYDVQQGEwJGUjEPMA0GA1UECAwGQWxzYWNlMRgwFgYDVQQKDA93
+                  d3cuZnJlZWxhbi5vcmcxEDAOBgNVBAsMB2ZyZWVsYW4xDjAMBgNVBAMMBWFsaWNl
+                  MSIwIAYJKoZIhvcNAQkBFhNjb250YWN0QGZyZWVsYW4ub3JnMIICIjANBgkqhkiG
+                  9w0BAQEFAAOCAg8AMIICCgKCAgEA3W29+ID6194bH6ejLrIC4hb2Ugo8v6ZC+Mrc
+                  k2dNYMNPjcOKABvxxEtBamnSaeU/IY7FC/giN622LEtV/3oDcrua0+yWuVafyxmZ
+                  yTKUb4/GUgafRQPf/eiX9urWurtIK7XgNGFNUjYPq4dSJQPPhwCHE/LKAykWnZBX
+                  RrX0Dq4XyApNku0IpjIjEXH+8ixE12wH8wt7DEvdO7T3N3CfUbaITl1qBX+Nm2Z6
+                  q4Ag/u5rl8NJfXg71ZmXA3XOj7zFvpyapRIZcPmkvZYn7SMCp8dXyXHPdpSiIWL2
+                  uB3KiO4JrUYvt2GzLBUThp+lNSZaZ/Q3yOaAAUkOx+1h08285Pi+P8lO+H2Xic4S
+                  vMq1xtLg2bNoPC5KnbRfuFPuUD2/3dSiiragJ6uYDLOyWJDivKGt/72OVTEPAL9o
+                  6T2pGZrwbQuiFGrGTMZOvWMSpQtNl+tCCXlT4mWqJDRwuMGrI4DnnGzt3IKqNwS4
+                  Qyo9KqjMIPwnXZAmWPm3FOKe4sFwc5fpawKO01JZewDsYTDxVj+cwXwFxbE2yBiF
+                  z2FAHwfopwaH35p3C6lkcgP2k/zgAlnBluzACUI+MKJ/G0gv/uAhj1OHJQ3L6kn1
+                  SpvQ41/ueBjlunExqQSYD7GtZ1Kg8uOcq2r+WISE3Qc9MpQFFkUVllmgWGwYDuN3
+                  Zsez95kCAwEAAaN7MHkwCQYDVR0TBAIwADAsBglghkgBhvhCAQ0EHxYdT3BlblNT
+                  TCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0OBBYEFFlfyRO6G8y5qEFKikl5
+                  ajb2fT7XMB8GA1UdIwQYMBaAFCNsLT0+KV14uGw+quK7Lh5sh/JTMA0GCSqGSIb3
+                  DQEBBQUAA4ICAQAT5wJFPqervbja5+90iKxi1d0QVtVGB+z6aoAMuWK+qgi0vgvr
+                  mu9ot2lvTSCSnRhjeiP0SIdqFMORmBtOCFk/kYDp9M/91b+vS+S9eAlxrNCB5VOf
+                  PqxEPp/wv1rBcE4GBO/c6HcFon3F+oBYCsUQbZDKSSZxhDm3mj7pb67FNbZbJIzJ
+                  70HDsRe2O04oiTx+h6g6pW3cOQMgIAvFgKN5Ex727K4230B0NIdGkzuj4KSML0NM
+                  slSAcXZ41OoSKNjy44BVEZv0ZdxTDrRM4EwJtNyggFzmtTuV02nkUj1bYYYC5f0L
+                  ADr6s0XMyaNk8twlWYlYDZ5uKDpVRVBfiGcq0uJIzIvemhuTrofh8pBQQNkPRDFT
+                  Rq1iTo1Ihhl3/Fl1kXk1WR3jTjNb4jHX7lIoXwpwp767HAPKGhjQ9cFbnHMEtkro
+                  RlJYdtRq5mccDtwT0GFyoJLLBZdHHMHJz0F9H7FNk2tTQQMhK5MVYwg+LIaee586
+                  CQVqfbscp7evlgjLW98H+5zylRHAgoH2G79aHljNKMp9BOuq6SnEglEsiWGVtu2l
+                  hnx8SB3sVJZHeer8f/UQQwqbAO+Kdy70NmbSaqaVtp8jOxLiidWkwSyRTsuU6D8i
+                  DiH5uEqBXExjrj0FslxcVKdVj5glVcSmkLwZKbEU1OKwleT/iXFhvooWhQ==
+                  -----END CERTIFICATE-----
+                ...
+          description: Signed batch result and certificate are sent back in response
+            body (YAML format).
+        "400":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Bad Request (e.g. invalid header, apikey is missing or invalid).
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "404":
+          content:
+            application/json:
+              example:
+                err: Not found
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Requests resource was not found.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Download Signed Batch Result
+      tags:
+      - batch
+      x-eov-operation-handler: controllers/BatchController
+  /version:
+    get:
+      description: Fetch details about the product version.
+      operationId: productVersion
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_11'
+          description: Provides productId and version information.
+        "500":
+          content:
+            application/json:
+              example:
+                err: <error message>
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Unexpected event on server
+      summary: Get Product Version
+      tags:
+      - stats
+      x-eov-operation-handler: controllers/StatsController
+  /stat/engines:
+    get:
+      description: The response is an array of engines with database information.
+      operationId: enginesStatus
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/inline_response_200_12'
+                type: array
+          description: An array with all the engines and their details.
+      summary: Engines Status
+      tags:
+      - stats
+      x-eov-operation-handler: controllers/StatsController
+  /stat/nodes:
+    get:
+      description: Get a list of all connected nodes and their status.
+      operationId: nodesStatus
+      parameters:
+      - description: "Generated `session_id` from [Login](#operation/userLogin) call\
+          \ can be used as an `apikey` for API calls that require authentication.\
+          \               \n"
+        in: header
+        name: apikey
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/inline_response_200_13'
+                type: array
+          description: An array with all the engines and their details.
+        "403":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: Invalid user information or Not Allowed
+        "405":
+          content:
+            application/json:
+              example:
+                err: Access denied
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+          description: The user has no rights for this operation.
+      summary: Nodes Status
+      tags:
+      - stats
+      x-eov-operation-handler: controllers/StatsController
+components:
+  links:
+    GetAPIKey:
+      description: |
+        Generated `session_id` from login call can be used as an `apikey` for API calls that require authentication.  This can also be used for file submission, if identifying who is submitting the file is enforced in the workflow(s).'
+      operationId: getAPIkey
+      parameters:
+        apikey: $response.body#/session_id
+    GetBatchId:
+      description: |
+        The batch identifier used to submit files in the batch and to close the batch.
+      operationId: getBatchId
+      parameters:
+        apikey: $response.body#/batch_id
+  requestBodies:
+    licenseActivated:
+      content:
+        application/json:
+          example:
+            activationKey: xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx
+            quantity: "1"
+            comment: MetaDefender Core Server 001
+          schema:
+            properties:
+              activationKey:
+                description: The license key provided by OPSWAT (either eval or production
+                  license).
+                type: string
+              quantity:
+                description: The number of MetaDefender nodes attached to this instance.
+                type: integer
+              comment:
+                description: Metadata field allowing you to provide relevant identification
+                  information for this instance.
+                type: string
+            type: object
+    licenseFile:
+      content:
+        application/octet-stream:
+          schema:
+            default: ""
+            type: string
+    adminCleanup:
+      content:
+        application/json:
+          schema:
+            properties:
+              cleanuprange:
+                description: The number of hours of data retention. Anything older
+                  than this number will be deleted.
+                example: 24
+                type: integer
+            type: object
+    skipListRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SkipList'
+      description: A list of all skip/white/black-listed hashes.
+    yaraRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/YaraSourcesObject'
+      description: A list of Yara Engine sources.
+    uploadFile:
+      content:
+        application/octet-stream:
+          schema:
+            format: binary
+            type: string
+    inline_object:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object'
+    inline_object_1:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object_1'
+    inline_object_2:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_object_2'
+  schemas:
+    UserLogin:
+      example:
+        session_id: session_id
+      properties:
+        session_id:
+          description: The apikey used to make API calls which requires authentication
+          type: string
+      required:
+      - session_id
+      type: object
+    LicenseInformation:
+      description: Information about the licensed product (product type, number of
+        activations, deploymentId, expiration date and days left)
+      example:
+        days_left: 3731
+        deployment: MSCL00000000000000000000000000000000
+        expiration: 09/30/2026
+        licensed_engines: '*'
+        licensed_to: OPSWAT, Inc.
+        max_node_count: "10"
+        online_activated: true
+        product_id: MSCL-4-unlimited
+        product_name: Metadefender Core 5 Linux
+      properties:
+        days_left:
+          description: Number of days left before expiration
+          type: integer
+        deployment:
+          description: Unique identifier which is maps the current deployment to the
+            activation
+          type: string
+        expiration:
+          description: Expiration date in MM/DD/YYYY format.
+          type: string
+        licensed_engines:
+          description: List of engine/module identifiers that have been licensed
+          items:
+            type: string
+          type: array
+        max_node_count:
+          description: Total number of deployed MetaDefender Nodes attached to this
+            MetaDefender Core instance.
+          type: string
+        online_activated:
+          description: Track online/offline activation mode
+          type: boolean
+        product_id:
+          description: Official MetaDefender base SKU licensed.
+          type: string
+        product_name:
+          description: Official MetaDefender base product name licensed.
+          type: string
+      type: object
+    AdminConfigSession:
+      description: API object for /admin/config/session
+      example:
+        allowCrossIpSessions: true
+        allowDuplicateSession: true
+        sessionTimeout: 300000
+        absoluteSessionTimeout: 0
+      properties:
+        absoluteSessionTimeout:
+          description: The interval (in milliseconds) for overall session length timeout
+            (regardless of activity).
+          example: 0
+          type: integer
+        allowCrossIpSessions:
+          description: Allow requests from the same user to come from different IPs.
+          example: true
+          type: boolean
+        allowDuplicateSession:
+          description: Allow same user to have multiple active sessions.
+          example: true
+          type: boolean
+        sessionTimeout:
+          description: The interval (in milliseconds) for the user's session timeout,
+            based on last activity. Timer starts after the last activity for the apikey.
+          example: 300000
+          type: integer
+      type: object
+    AdminConfigUpdate:
+      description: API object for /admin/config/update
+      example:
+        disabledupdate:
+        - days: 5-7
+          from: 480
+          to: 960
+        - days: 5-7
+          from: 480
+          to: 960
+        autoupdateperiod: 240
+        source: internet
+        pickupfolder: /tmp/core-data/update_autoadd
+        deleteafterimport: true
+      properties:
+        autoupdateperiod:
+          description: The interval (in minutes) for checking for new updates.
+          example: 240
+          type: integer
+        deleteafterimport:
+          description: If you want to clean the pickup folder after the updates have
+            been applied.
+          example: true
+          type: boolean
+        disabledupdate:
+          description: Lockdown a time interval when the engines are not allowed to
+            update.
+          items:
+            $ref: '#/components/schemas/AdminConfigUpdate_disabledupdate'
+          type: array
+        pickupfolder:
+          description: The folder where MetaDefender will look for the new engine
+            files.
+          example: /tmp/core-data/update_autoadd
+          type: string
+        source:
+          description: |
+            Define where the updates will be loaded from. <p> This can be either:
+              * `internet` -> if selected, will check for new updates every `autoupdateperiod` minutes
+              * `folder` -> make sure that MetaDefender has access/permission to that folder
+              * `manual` -> requires manually uploading the packages in Inventory > Modules > Upload package.
+          enum:
+          - internet
+          - folder
+          - manual
+          example: internet
+          type: string
+      type: object
+    SkipList:
+      description: Object that defines the skip hashes list.
+      example:
+        blacklist:
+          edecbf6bd03ef340e0c6cd438a4069c2:
+            comment: example3
+        skip:
+          "13d8b8329bd2f668e6a889f32feaa48c832dbf0c":
+            comment: example4
+            engines:
+            - totaldefense
+        whitelist:
+          "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d":
+            comment: example5
+          df72d035b31b1ff89f752e83af14b9e9dcf4913d9954f074546860d10b6908fb:
+            comment: example2
+      properties:
+        blacklist:
+          example:
+            edecbf6bd03ef340e0c6cd438a4069c2:
+              comment: example3
+          type: object
+        skip:
+          example:
+            "13d8b8329bd2f668e6a889f32feaa48c832dbf0c":
+              comment: example4
+              engines:
+              - totaldefense
+          type: object
+        whitelist:
+          example:
+            "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d":
+              comment: example5
+            df72d035b31b1ff89f752e83af14b9e9dcf4913d9954f074546860d10b6908fb:
+              comment: example2
+          type: object
+      type: object
+    AdminConfigWebhook:
+      description: Webhook configuration details.
+      example:
+        maxretrytime: 3
+        deplayprogression: 1000
+        delayduration: 1000
+      properties:
+        maxretrytime:
+          description: |
+            Number of allowed retries sending callback to client when failed.
+
+            > _**For example**_: maxretrytime= 3
+
+            Sending callback failed for some reasons
+              * 1st retry triggered after delayduration (ms)
+              * 2nd retry triggered after delayduration+ delayprogression (ms)
+              * 3rd retry triggered after delayduration+ 2*delayprogression (ms)
+          example: 3
+          type: number
+        delayduration:
+          description: in milliseconds
+          example: 1000
+          type: number
+        deplayprogression:
+          description: in milliseconds
+          example: 1000
+          type: number
+      type: object
+    UserRequest:
+      allOf:
+      - $ref: '#/components/schemas/UserResponse'
+      - $ref: '#/components/schemas/UserRequest_allOf'
+    UserResponse:
+      description: User object in MetaDefender.
+      example:
+        ui_settings:
+          refresh_rate:
+            value: 30
+          time_period:
+            value: 24
+            unitsInHour: 1
+        apikey: b8a4b52f19de88e365aa4f7e403fa91b352f
+        roles:
+        - "1"
+        - "2"
+        - "3"
+        - '...'
+        name: John Smith
+        directory_id: 1
+        display_name: jsmith
+        email: john.smith@company.com
+      properties:
+        apikey:
+          description: Associated apikey with this user
+          example: b8a4b52f19de88e365aa4f7e403fa91b352f
+          type: string
+        directory_id:
+          description: To which User Directories belongs to (LOCAL/System/etc.)
+          example: 1
+          type: integer
+        display_name:
+          description: Which is the name showed in the Management Console
+          example: jsmith
+          type: string
+        email:
+          description: User's email address
+          example: john.smith@company.com
+          type: string
+        name:
+          description: User's full name
+          example: John Smith
+          type: string
+        roles:
+          description: A list of roles attached to this user
+          example:
+          - "1"
+          - "2"
+          - "3"
+          - '...'
+          items:
+            type: string
+          type: array
+        ui_settings:
+          description: Configuration of Management Console for this user.
+          example:
+            refresh_rate:
+              value: 30
+            time_period:
+              value: 24
+              unitsInHour: 1
+          type: object
+      type: object
+    NewUserRoleRequest:
+      description: MetaDefender user role describing object.
+      example:
+        rights:
+          scanlog: ""
+          workflow: ""
+          scan: ""
+          rule: ""
+          update: ""
+          cert: ""
+          skip: ""
+          updatelog: ""
+          users: ""
+          agents: ""
+          configlog: ""
+          license: ""
+          external: ""
+          zone: ""
+          engines: ""
+          quarantine: ""
+          retention: ""
+        name: new_role
+        display_name: New MetaDefender User Role
+      properties:
+        name:
+          description: The name identifier of the role
+          example: new_role
+          type: string
+        display_name:
+          description: The extended name showed in the Management Console.
+          example: New MetaDefender User Role
+          type: string
+        rights:
+          $ref: '#/components/schemas/NewUserRoleRequest_rights'
+      type: object
+    NewUserRoleResponse:
+      allOf:
+      - $ref: '#/components/schemas/NewUserRoleRequest'
+      - $ref: '#/components/schemas/NewUserRoleResponse_allOf'
+    YaraSourcesObject:
+      description: Object describing the yara sources.
+      example:
+        http_sources:
+        - source: http://onlineyarasources.net/source.zip
+          state: disabled
+        - source: http://onlineyarasources.net/source.zip
+          state: disabled
+        local_sources:
+        - source: /mnt/yara
+          state: enabled
+        - source: /mnt/yara
+          state: enabled
+      properties:
+        local_sources:
+          description: A list of all locals sources
+          items:
+            $ref: '#/components/schemas/YaraSourcesObject_local_sources'
+          type: array
+        http_sources:
+          description: A list of all remote sources.
+          items:
+            $ref: '#/components/schemas/YaraSourcesObject_http_sources'
+          type: array
+      type: object
+    AnalysisResult:
+      example:
+        scan_results:
+          scan_all_result_a: Sensitive Data Found
+          start_time: 2020-03-12T08:37:05.427Z
+          scan_details:
+            ClamAV:
+              threat_found: ""
+              wait_time: 3
+              location: local
+              eng_id: clamav_1_windows
+              scan_time: 336
+              def_time: 2020-03-11T11:08:00.000Z
+              scan_result_i: 0
+          data_id: 8101abae27be4d63859c55d9e0ed0135
+          progress_percentage: 100
+          scan_all_result_i: 20
+          total_time: 4804
+          total_avs: 1
+        dlp_info:
+          dlp_info:
+            hits:
+              ccn:
+                hits:
+                - '{}'
+                - '{}'
+                display_name: Credit Card Number
+            severity: 0
+            filename: OPSWAT_Proactive_DLP_CCN_proactive-dlp-processed_by_OPSWAT_MetaDefender_8101abae27be4d63859c55d9e0ed0135.pdf
+            watermark:
+              result: added
+            redact:
+              result: redacted
+            verdict: 1
+            certainty: High
+            metadata_removal:
+              result: not removed
+            errors:
+              redact: File structure invalid.
+        data_id: 8101abae27be4d63859c55d9e0ed0135
+        process_info:
+          queue_time: 321
+          result: Blocked
+          verdicts:
+          - Sensitive Data Found
+          processing_time: 4804
+          blocked_reason: Sensitive Data Found
+          profile: File process
+          progress_percentage: 100
+          outdated_data:
+          - enginedefinition
+          - configuration
+          - sanitization
+          user_agent: webscan
+          post_processing:
+            actions_failed: Sanitization Failed | PAscript failed
+            copy_move_destination: ""
+            actions_ran: Sanitized | PAscript
+            converted_to: ""
+            sanitization_details: ""
+            converted_destination: OPSWAT_Proactive_DLP_CCN_sanitized.pdf
+          file_type_skipped_scan: false
+          username: LOCAL/admin
+        file_info:
+          sha1: a33c72a996a9603d479e3dff3d23bf619c975fbe
+          upload_timestamp: 2020-03-12T08:37:05.412Z
+          sha256: b9fdc10b47950b9e503ef4dc0ef42d28e7c37ccd749d4a5dcd7d9b3218996b7f
+          file_type: application/pdf
+          display_name: OPSWAT_Proactive_DLP_CCN.pdf
+          file_size: 75906
+          file_type_description: Adobe Portable Document Format
+          md5: c4863c8ce44fb7ae84eb48c9b78f8b5e
+        vulnerability_info:
+          result:
+            detected_product:
+              severity: critical
+              product:
+                name: Adobe Flash Player
+                id: 104
+              signature: 107
+              vendor:
+                name: Adobe Systems Inc.
+                id: 91
+              has_vulnerability: true
+              remediation_link: http://get.adobe.com/flashplayer/
+              is_current: false
+              version: 20.0.0.235
+              version_data:
+                count_behind: 65
+                version: 25.0.0.149
+                feed_id: 200005
+              sig_name: Adobe Flash Player
+            vulnerabilites:
+            - severity: CRITICAL
+              static_id: 20158459
+              severity_index: 5
+              description: |
+                Adobe Flash Player before 18.0.0.324 and 19.x and 20.x before 20.0.0.267 on Windows and OS X and before 11.2.202.559 on Linux, Adobe AIR before 20.0.0.233, Adobe AIR SDK before 20.0.0.233, and Adobe AIR SDK & Compiler before 20.0.0.233 allow attackers to execute arbitrary code or cause a denial of service (memory corruption) via unspecified vectors, a different vulnerability than CVE-2015-8460, CVE-2015-8636, and CVE-2015-8645.
+              details:
+                cwe: CWE-119
+                cve: CVE-2015-8459
+                references:
+                - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+                - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+                cpe: cpe:/a:adobe:flash player
+                last_modified_epoch: "1487300348"
+                published-epoch: "1451347140"
+                cvss:
+                  confidentiality-impact: COMPLETE
+                  integrity-impact: COMPLETE
+                  score: "10.0"
+                  generated-on-epoch: "1451411824"
+                  access-vector: NETWORK
+                  availability-impact: ""
+                  access-complexity: LOW
+                  source: http://nvd.nist.gov
+                  authentication: NONE
+            - severity: CRITICAL
+              static_id: 20158459
+              severity_index: 5
+              description: |
+                Adobe Flash Player before 18.0.0.324 and 19.x and 20.x before 20.0.0.267 on Windows and OS X and before 11.2.202.559 on Linux, Adobe AIR before 20.0.0.233, Adobe AIR SDK before 20.0.0.233, and Adobe AIR SDK & Compiler before 20.0.0.233 allow attackers to execute arbitrary code or cause a denial of service (memory corruption) via unspecified vectors, a different vulnerability than CVE-2015-8460, CVE-2015-8636, and CVE-2015-8645.
+              details:
+                cwe: CWE-119
+                cve: CVE-2015-8459
+                references:
+                - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+                - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+                cpe: cpe:/a:adobe:flash player
+                last_modified_epoch: "1487300348"
+                published-epoch: "1451347140"
+                cvss:
+                  confidentiality-impact: COMPLETE
+                  integrity-impact: COMPLETE
+                  score: "10.0"
+                  generated-on-epoch: "1451411824"
+                  access-vector: NETWORK
+                  availability-impact: ""
+                  access-complexity: LOW
+                  source: http://nvd.nist.gov
+                  authentication: NONE
+            code: 0
+            method: 50700
+            timing: 48
+            hash: B428501D1FAD1BA14AA2FC3F9B5F051EC8721EA2
+            timestamp: "1493020752"
+        yara:
+          hits: '{}'
+      properties:
+        data_id:
+          description: data identifier of the requested file
+          example: 8101abae27be4d63859c55d9e0ed0135
+          type: string
+        dlp_info:
+          $ref: '#/components/schemas/DLPResponse'
+        file_info:
+          $ref: '#/components/schemas/FileInformation'
+        process_info:
+          $ref: '#/components/schemas/AnalysisResult_process_info'
+        scan_results:
+          $ref: '#/components/schemas/MetascanReport'
+        vulnerability_info:
+          $ref: '#/components/schemas/VulnerabilityResponse'
+        yara:
+          $ref: '#/components/schemas/YaraReport'
+      type: object
+    BatchId:
+      example:
+        batch_id: batch_id
+      properties:
+        batch_id:
+          description: The batch identifier used to submit files in the batch and
+            to close the batch.
+          type: string
+      required:
+      - batch_id
+      type: object
+    BatchResponse:
+      description: The response for a Batch status request.
+      example:
+        scan_results:
+          scan_all_result_a: Infected
+          start_time: 2020-03-12T08:37:05.427Z
+          batch_id: b7cc760038324b02908a5c111cb1563d
+          scan_all_result_i: 1
+          total_time: 18403
+          total_avs: 0
+        batch_id: b7cc760038324b02908a5c111cb1563d
+        process_info:
+          result: Blocked
+          blocked_reason: Infected
+          profile: File process
+          user_agent: mdicapserver
+          file_type_skipped_scan: false
+          username: LOCAL/admin
+        batch_files:
+          batch_count: 4
+          first_index: 0
+          files_in_batch:
+          - scan_all_result_a: Infected
+            scanned_with: 4
+            data_id: 24c8b5dadd48445989ac3431544fdc34
+            detected_by: 4
+            process_info:
+              result: Blocked
+              verdicts:
+              - Infected
+              blocked_reason: Infected
+              progress_percentage: 100
+            file_type: application/octet-stream
+            progress_percentage: 100
+            scan_all_result_i: 1
+            display_name: eicar.com
+            file_size: 68
+            file_type_description: EICAR virus test files
+          - scan_all_result_a: Infected
+            scanned_with: 4
+            data_id: 24c8b5dadd48445989ac3431544fdc34
+            detected_by: 4
+            process_info:
+              result: Blocked
+              verdicts:
+              - Infected
+              blocked_reason: Infected
+              progress_percentage: 100
+            file_type: application/octet-stream
+            progress_percentage: 100
+            scan_all_result_i: 1
+            display_name: eicar.com
+            file_size: 68
+            file_type_description: EICAR virus test files
+          page_size: 50
+        user_data: http://localhost:8008/
+        is_closed: false
+      properties:
+        batch_files:
+          $ref: '#/components/schemas/BatchResponse_batch_files'
+        batch_id:
+          description: The batch unique identifer
+          example: b7cc760038324b02908a5c111cb1563d
+          type: string
+        is_closed:
+          description: The batch status (open/close).
+          example: false
+          type: boolean
+        process_info:
+          $ref: '#/components/schemas/BatchResponse_process_info'
+        scan_results:
+          $ref: '#/components/schemas/BatchResponse_scan_results'
+        user_data:
+          description: Metadata submitted at batch creation.
+          example: http://localhost:8008/
+          type: string
+      type: object
+    RolePermissionObject:
+      description: An object defining the permission set allowed on MetaDefender individual
+        role.
+      example:
+      - read
+      - write
+      items:
+        enum:
+        - read
+        - write
+        example: '[read]'
+        type: string
+      type: array
+    DLPResponse:
+      description: Full report from Proactive DLP
+      example:
+        dlp_info:
+          hits:
+            ccn:
+              hits:
+              - '{}'
+              - '{}'
+              display_name: Credit Card Number
+          severity: 0
+          filename: OPSWAT_Proactive_DLP_CCN_proactive-dlp-processed_by_OPSWAT_MetaDefender_8101abae27be4d63859c55d9e0ed0135.pdf
+          watermark:
+            result: added
+          redact:
+            result: redacted
+          verdict: 1
+          certainty: High
+          metadata_removal:
+            result: not removed
+          errors:
+            redact: File structure invalid.
+      properties:
+        dlp_info:
+          $ref: '#/components/schemas/DLPResponse_dlp_info'
+      type: object
+    FileInformation:
+      description: basic information of the scanned file
+      example:
+        sha1: a33c72a996a9603d479e3dff3d23bf619c975fbe
+        upload_timestamp: 2020-03-12T08:37:05.412Z
+        sha256: b9fdc10b47950b9e503ef4dc0ef42d28e7c37ccd749d4a5dcd7d9b3218996b7f
+        file_type: application/pdf
+        display_name: OPSWAT_Proactive_DLP_CCN.pdf
+        file_size: 75906
+        file_type_description: Adobe Portable Document Format
+        md5: c4863c8ce44fb7ae84eb48c9b78f8b5e
+      properties:
+        display_name:
+          description: The filename reported via `filename` header.
+          example: OPSWAT_Proactive_DLP_CCN.pdf
+          type: string
+        file_size:
+          description: Total file size in bytes.
+          example: 75906
+          type: integer
+        file_type:
+          description: The filetype using mimetype.
+          example: application/pdf
+          type: string
+        file_type_description:
+          description: The filetype in human readable format.
+          example: Adobe Portable Document Format
+          type: string
+        md5:
+          description: File's MD5 hash.
+          example: c4863c8ce44fb7ae84eb48c9b78f8b5e
+          type: string
+        sha1:
+          description: File's SHA1 hash.
+          example: a33c72a996a9603d479e3dff3d23bf619c975fbe
+          type: string
+        sha256:
+          description: File's SHA256 Hash.
+          example: b9fdc10b47950b9e503ef4dc0ef42d28e7c37ccd749d4a5dcd7d9b3218996b7f
+          type: string
+        upload_timestamp:
+          description: The timestamp when file was successfully uploaded to MetaDefender.
+          example: 2020-03-12T08:37:05.412Z
+          type: string
+      type: object
+    DeepCDRDetails:
+      description: Deep CDR module returns forensic info to describe what happened
+        during the process in the case file was successfully sanitized.
+      example:
+        description: Sanitized successfully.
+        details:
+        - action: sanitized
+          object_name: XML content
+        - action: removed
+          count: 1
+          object_details:
+          - "<ddeLink xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"\
+            \ ddeService=\"calc\" ddeTopic=\"topic\" xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"\
+            >\r\n  <ddeItems>\r\n    <ddeItem name=\"_xlbgnm.A3\" advise=\"1\" />\r\
+            \n    <ddeItem name=\"StdDocumentName\" ole=\"1\" advise=\"1\" />\r\n\
+            \  </ddeItems>\r\n</ddeLink>"
+          object_name: DDE
+        - action: removed
+          count: 2
+          object_details:
+          - http://metadefender.com/
+          - http://google.com/
+          object_name: hyperlink
+        - object_name: XLS file
+          file_name: Microsoft_Excel_97-2003_Worksheet.xls
+          description: Sanitized successfully.
+          details:
+          - action: removed
+            count: 1
+            object_details:
+            - "Attribute VB_Name = \"Sheet1\"\r\nAttribute VB_Base = \"0{00020820-0000-0000-C000-000000000046}\"\
+              \r\nAttribute VB_GlobalNameSpace = False\r\nAttribute VB_Creatable =\
+              \ False\r\nAttribute VB_PredeclaredId = True\r\nAttribute VB_Exposed\
+              \ = True\r\nAttribute VB_TemplateDerived = False\r\nAttribute VB_Customizable\
+              \ = True\r\n"
+            object_name: macro
+          action: sanitized
+        - object_name: XLSX file
+          file_name: Microsoft_Excel_Worksheet.xlsx
+          description: invalid file structure.
+          details: Relationship file sharedStrings.xml does not exist
+          action: removed
+        - action: removed
+          count: 1
+          object_name: OLE
+        - action: sanitized
+          count: 3
+          object_name: image
+        - action: removed
+          count: 1
+          object_details:
+          - "Attribute VB_Name = \"Module1\"\r\nSub test_Macro()\r\nAttribute test_Macro.VB_Description\
+            \ = \"create macro for FTC test\"\r\nAttribute test_Macro.VB_ProcData.VB_Invoke_Func\
+            \ = \"e\\n14\"\r\n'\r\n' test_Macro Macro\r\n' create macro for FTC test\r\
+            \n'\r\n' Keyboard Shortcut: Ctrl+e\r\n'\r\n    Range(\"B13\").Select\r\
+            \n    ActiveCell.FormulaR1C1 = \"testing macro\"\r\n    Range(\"C13\"\
+            ).Select\r\n    ActiveCell.FormulaR1C1 = \"blablabla\"\r\n    Range(\"\
+            D13\").Select\r\nEnd Sub\r\n"
+          object_name: macro
+      properties:
+        description:
+          description: Action was successful or not.
+          example: Sanitized successfully
+          type: string
+        details:
+          description: List of all sanitized objects
+          items:
+            $ref: '#/components/schemas/DeepCDRDetails_details'
+          type: array
+      type: object
+    MetascanReport:
+      description: Result of the scanning process.
+      example:
+        scan_all_result_a: Sensitive Data Found
+        start_time: 2020-03-12T08:37:05.427Z
+        scan_details:
+          ClamAV:
+            threat_found: ""
+            wait_time: 3
+            location: local
+            eng_id: clamav_1_windows
+            scan_time: 336
+            def_time: 2020-03-11T11:08:00.000Z
+            scan_result_i: 0
+        data_id: 8101abae27be4d63859c55d9e0ed0135
+        progress_percentage: 100
+        scan_all_result_i: 20
+        total_time: 4804
+        total_avs: 1
+      properties:
+        data_id:
+          description: Data ID of the requested file
+          example: 8101abae27be4d63859c55d9e0ed0135
+          type: string
+        progress_percentage:
+          description: Track analysis progress until reaches 100.
+          example: 100
+          type: integer
+        scan_all_result_a:
+          allOf:
+          - $ref: '#/components/schemas/ProcessingResultsStringEnum'
+          description: The overall scan result as string
+          example: Sensitive Data Found
+        scan_all_result_i:
+          allOf:
+          - $ref: '#/components/schemas/ProcessingResultsIndexEnum'
+          description: The overall scan result as index in the Processing Results
+            table.
+          example: 20
+        start_time:
+          description: Timestamp when the scanning process starts.
+          example: 2020-03-12T08:37:05.427Z
+          type: string
+        total_avs:
+          description: Total number of scanning engines used as part of this analysis.
+          example: 1
+          type: integer
+        total_time:
+          description: Total time elapsed during scan (in milliseconds).
+          example: 4804
+          type: integer
+        scan_details:
+          $ref: '#/components/schemas/MetascanReport_scan_details'
+      type: object
+    VulnerabilityResponse:
+      description: Contains all vulnerability information of the analysis result
+      example:
+        result:
+          detected_product:
+            severity: critical
+            product:
+              name: Adobe Flash Player
+              id: 104
+            signature: 107
+            vendor:
+              name: Adobe Systems Inc.
+              id: 91
+            has_vulnerability: true
+            remediation_link: http://get.adobe.com/flashplayer/
+            is_current: false
+            version: 20.0.0.235
+            version_data:
+              count_behind: 65
+              version: 25.0.0.149
+              feed_id: 200005
+            sig_name: Adobe Flash Player
+          vulnerabilites:
+          - severity: CRITICAL
+            static_id: 20158459
+            severity_index: 5
+            description: |
+              Adobe Flash Player before 18.0.0.324 and 19.x and 20.x before 20.0.0.267 on Windows and OS X and before 11.2.202.559 on Linux, Adobe AIR before 20.0.0.233, Adobe AIR SDK before 20.0.0.233, and Adobe AIR SDK & Compiler before 20.0.0.233 allow attackers to execute arbitrary code or cause a denial of service (memory corruption) via unspecified vectors, a different vulnerability than CVE-2015-8460, CVE-2015-8636, and CVE-2015-8645.
+            details:
+              cwe: CWE-119
+              cve: CVE-2015-8459
+              references:
+              - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+              - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+              cpe: cpe:/a:adobe:flash player
+              last_modified_epoch: "1487300348"
+              published-epoch: "1451347140"
+              cvss:
+                confidentiality-impact: COMPLETE
+                integrity-impact: COMPLETE
+                score: "10.0"
+                generated-on-epoch: "1451411824"
+                access-vector: NETWORK
+                availability-impact: ""
+                access-complexity: LOW
+                source: http://nvd.nist.gov
+                authentication: NONE
+          - severity: CRITICAL
+            static_id: 20158459
+            severity_index: 5
+            description: |
+              Adobe Flash Player before 18.0.0.324 and 19.x and 20.x before 20.0.0.267 on Windows and OS X and before 11.2.202.559 on Linux, Adobe AIR before 20.0.0.233, Adobe AIR SDK before 20.0.0.233, and Adobe AIR SDK & Compiler before 20.0.0.233 allow attackers to execute arbitrary code or cause a denial of service (memory corruption) via unspecified vectors, a different vulnerability than CVE-2015-8460, CVE-2015-8636, and CVE-2015-8645.
+            details:
+              cwe: CWE-119
+              cve: CVE-2015-8459
+              references:
+              - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+              - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+              cpe: cpe:/a:adobe:flash player
+              last_modified_epoch: "1487300348"
+              published-epoch: "1451347140"
+              cvss:
+                confidentiality-impact: COMPLETE
+                integrity-impact: COMPLETE
+                score: "10.0"
+                generated-on-epoch: "1451411824"
+                access-vector: NETWORK
+                availability-impact: ""
+                access-complexity: LOW
+                source: http://nvd.nist.gov
+                authentication: NONE
+          code: 0
+          method: 50700
+          timing: 48
+          hash: B428501D1FAD1BA14AA2FC3F9B5F051EC8721EA2
+          timestamp: "1493020752"
+      properties:
+        result:
+          $ref: '#/components/schemas/VulnerabilityResponse_result'
+      type: object
+    YaraReport:
+      description: Information on data that matched yara rules
+      example:
+        hits: '{}'
+      properties:
+        hits:
+          description: detailed results that contains the name of the matched rules
+            and a description for each.
+          type: object
+        verdict:
+          $ref: '#/components/schemas/ScanResultEnum'
+      type: object
+    ProcessingResultsStringEnum:
+      description: |
+        | scan_result_a                | scan_result_i | |------------------------------|---------------| | No Threat Detected           | 0             | | Infected                     | 1             | | Suspicious                   | 2             | | Failed                       | 3             | | Cleaned / Deleted            | 4             | | Scan Skipped - Whitelisted   | 7             | | Scan Skipped - Blacklisted   | 8             | | Exceeded Archive Depth       | 9             | | Not Scanned                  | 10            | | Encrypted Archive            | 12            | | Exceeded Archive Size        | 13            | | Exceeded Archive File Number | 14            | | Password Protected Document  | 15            | | Exceeded Archive Timeout     | 16            | | File type Mismatch           | 17            | | Potentially Vulnerable File  | 18            | | Canceled                     | 19            | | Sensitive data found         | 20            | | Yara Rule Matched            | 21            | | Potentially Unwanted Program | 22            | | Unsupported file type        | 23            | | In Progress                  | 255           |
+      enum:
+      - Threat Detected
+      - Infected
+      - Suspicious
+      - Failed
+      - Cleaned / Deleted
+      - Scan Skipped - Whitelisted
+      - Scan Skipped - Blacklisted
+      - Exceeded Archive Depth
+      - Not Scanned
+      - Encrypted Archive
+      - Exceeded Archive Size
+      - Exceeded Archive File Number
+      - Password Protected Document
+      - Exceeded Archive Timeout
+      - File type Mismatch
+      - Potentially Vulnerable File
+      - Canceled
+      - Sensitive data found
+      - Yara Rule Matched
+      - Potentially Unwanted Program
+      - Unsupported file type
+      - In Progress
+      example: Threat Detected
+      type: string
+    ProcessingResultsIndexEnum:
+      description: |
+        Possible overall and per engine analysis results:
+          | scan_result_i | scan_result_a                |
+          |---------------|------------------------------|
+          | 0             | No Threat Detected           |
+          | 1             | Infected                     |
+          | 2             | Suspicious                   |
+          | 3             | Failed                       |
+          | 4             | Cleaned / Deleted            |
+          | 7             | Scan Skipped - Whitelisted   |
+          | 8             | Scan Skipped - Blacklisted   |
+          | 9             | Exceeded Archive Depth       |
+          | 10            | Not Scanned                  |
+          | 12            | Encrypted Archive            |
+          | 13            | Exceeded Archive Size        |
+          | 14            | Exceeded Archive File Number |
+          | 15            | Password Protected Document  |
+          | 16            | Exceeded Archive Timeout     |
+          | 17            | File type Mismatch           |
+          | 18            | Potentially Vulnerable File  |
+          | 19            | Canceled                     |
+          | 20            | Sensitive data found         |
+          | 21            | Yara Rule Matched            |
+          | 22            | Potentially Unwanted Program |
+          | 23            | Unsupported file type        |
+          | 255           | In Progress                  |
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 7
+      - 8
+      - 9
+      - 10
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+      - 19
+      - 20
+      - 21
+      - 22
+      - 23
+      - 255
+      example: 0
+      type: integer
+    DLPRuleMatchResult:
+      description: An entry detailing the match.
+      properties:
+        after:
+          description: The context after the matched data.
+          example: 123 Cherry Lane st.
+          type: string
+        before:
+          description: The context before the matched data.
+          example: Card Number
+          type: string
+        certainty:
+          description: |
+            The text version of "certainty_score", possible values:
+              * `Very Low`
+                * `Low`
+                * `Medium`
+                * `High`
+                * `Very High`
+          enum:
+          - Very Low
+          - Low
+          - Medium
+          - High
+          - Very High
+          example: Very High
+          type: string
+        certainty_score:
+          description: |
+            Is  defined by the relevance of the given hit in its context. It is calculated based on multiple factors such as the number of digits, possible values: [0-100]
+          example: 100
+          type: integer
+        hit:
+          description: The matched data.
+          example: XXXXXXXXXXXXXXX1938
+          type: string
+        isRedacted:
+          description: If file was redacted or not.
+          example: false
+          type: boolean
+        severity:
+          description: |
+            (NOTE: this field is deprecated): can be 0 (detected) or 1 (suspicious).
+          enum:
+          - 0
+          - 1
+          example: 0
+          type: integer
+      type: object
+    AVEngineScanReport:
+      description: Scan report per each engine.
+      example:
+        threat_found: ""
+        wait_time: 3
+        location: local
+        eng_id: clamav_1_windows
+        scan_time: 336
+        def_time: 2020-03-11T11:08:00.000Z
+        scan_result_i: 0
+      properties:
+        def_time:
+          description: The database definition time for this engine
+          example: 2020-03-11T11:08:00.000Z
+          type: string
+        eng_id:
+          description: The  unique identification string for the engine
+          example: clamav_1_windows
+          type: string
+        location:
+          description: Where this engine is deployed (local/remote).
+          example: local
+          type: string
+        scan_result_i:
+          description: Scan result as index in the Processing Results table
+          example: 0
+          type: integer
+        scan_time:
+          description: The time elapsed during scan with this engine (in milliseconds).
+          example: 336
+          type: integer
+        threat_found:
+          description: The threat name, IF scan result is Infected or Suspicious.
+            Otherwise empty string or error message from the engine.
+          example: ""
+          type: string
+        wait_time:
+          description: Time elapsed between sending file to node and receiving the
+            result from the engine (in milliseconds).
+          example: 3
+          type: integer
+      type: object
+    ScanResultEnum:
+      description: "The overall result for the analyzed file. Value will be one of\
+        \ the following:\n  | index         | status                       |\n  |---------------|------------------------------|\n\
+        \  | 0             | Clean                        |\n  | 1             | Found\
+        \ matched data           |\n  | 2             | Suspicious               \
+        \    |\n  | 3             | Failed                       |\n  | 4        \
+        \     | Not scanned                  |\n    \n"
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      type: integer
+    inline_object:
+      properties:
+        user:
+          description: Username
+          type: string
+        password:
+          description: User's password
+          type: string
+      type: object
+    inline_response_403:
+      properties:
+        err:
+          description: <error message> will describe the incident. More details would
+            be logged in MetaDefender Core logs
+          type: string
+    inline_response_500:
+      properties:
+        err:
+          description: Error reason
+          type: string
+    inline_response_200:
+      example:
+        cleanuprange: 24
+      properties:
+        cleanuprange:
+          description: The number of hours of data retention. Anything older than
+            this number will be deleted.
+          example: 24
+          type: integer
+    inline_object_1:
+      properties:
+        maxage:
+          description: The number of minutes of data retention. Anything older than
+            this number will be deleted.
+          example: 360
+          type: integer
+      type: object
+    inline_response_200_1:
+      example:
+        maxage: 360
+      properties:
+        maxage:
+          description: The number of minutes of data retention. Anything older than
+            this number will be deleted.
+          example: 360
+          type: integer
+    inline_response_200_2:
+      example:
+        result: Both engine and database are pinned
+      properties:
+        result:
+          enum:
+          - Engine is pinned
+          - Database is pinned
+          - Both engine and database are pinned
+          example: Both engine and database are pinned
+          type: string
+    inline_response_200_3:
+      example:
+        result: Both engine and database are unpinned
+      properties:
+        result:
+          enum:
+          - Engine is unpinned
+          - Database is unpinned
+          - Both engine and database are unpinned
+          example: Both engine and database are unpinned
+          type: string
+    inline_response_200_4:
+      example:
+        result: Engine is enabled
+      properties:
+        result:
+          example: Engine is enabled
+          type: string
+    inline_response_200_5:
+      example:
+        result: Engine is disabled
+      properties:
+        result:
+          example: Engine is disabled
+          type: string
+    inline_response_200_6:
+      example:
+        result: Successfully imported
+      properties:
+        result:
+          example: Successfully imported
+          type: string
+    inline_object_2:
+      properties:
+        old_password:
+          description: The current password in plain text
+          type: string
+        new_password:
+          description: The new password in plain text
+          type: string
+      type: object
+    inline_response_200_7_issues_general:
+      example:
+        severity: warning
+        message: Error while extracting network source. Can not open destination.
+      properties:
+        severity:
+          example: warning
+          type: string
+        message:
+          example: Error while extracting network source. Can not open destination.
+          type: string
+    inline_response_200_7_issues_source:
+      example:
+        severity: warning
+        message: The given local source does not exists.
+      properties:
+        severity:
+          example: warning
+          type: string
+        message:
+          example: The given local source does not exists.
+          type: string
+    inline_response_200_7_issues:
+      description: Stores a map of issues. Each key represents the according source,
+        except "general", which contains general errors occurred during the generation
+        process
+      example:
+        general:
+        - severity: warning
+          message: Error while extracting network source. Can not open destination.
+        - severity: warning
+          message: Error while extracting network source. Can not open destination.
+        source:
+        - severity: warning
+          message: The given local source does not exists.
+        - severity: warning
+          message: The given local source does not exists.
+      properties:
+        general:
+          description: Contains general errors occurred during the generation process
+          items:
+            $ref: '#/components/schemas/inline_response_200_7_issues_general'
+          type: array
+        source:
+          items:
+            $ref: '#/components/schemas/inline_response_200_7_issues_source'
+          type: array
+    inline_response_200_7:
+      example:
+        start_time: ""
+        issues:
+          general:
+          - severity: warning
+            message: Error while extracting network source. Can not open destination.
+          - severity: warning
+            message: Error while extracting network source. Can not open destination.
+          source:
+          - severity: warning
+            message: The given local source does not exists.
+          - severity: warning
+            message: The given local source does not exists.
+        status: idle
+      properties:
+        status:
+          description: Current status of generating the package.
+          enum:
+          - idle
+          - error
+          - inprogress
+          example: idle
+          type: string
+        start_time:
+          description: Used only when status is inprogress, otherwise its empty
+          example: ""
+          type: string
+        issues:
+          $ref: '#/components/schemas/inline_response_200_7_issues'
+    inline_response_200_8:
+      example:
+        data_id: data_id
+      properties:
+        data_id:
+          type: string
+      required:
+      - data_id
+    inline_response_400:
+      properties:
+        err:
+          type: string
+    inline_response_200_9:
+      example:
+        request_time: ""
+        status_code: 200
+        data_id: j2939fh3ifoqkhwhr3h9h1h0re
+        url: https://apigateway.corporate.com/metadefender/callbackurl
+      properties:
+        data_id:
+          description: The file submission identifier
+          example: j2939fh3ifoqkhwhr3h9h1h0re
+          type: string
+        request_time:
+          description: A timestamp when the request has been made.
+          example: ""
+          type: string
+        status_code:
+          description: What was the returned HTTP status code.
+          example: 200
+          type: integer
+        url:
+          description: What was the called URL (should match the `callbackurl` header).
+          example: https://apigateway.corporate.com/metadefender/callbackurl
+          type: string
+    inline_response_200_10:
+      example:
+        max_file_size: 200000000
+        name: File scan
+      properties:
+        max_file_size:
+          description: The maximum allowed file size (in bytes) for this rule.
+          example: 200000000
+          type: integer
+        name:
+          description: A unique identifier for identify in the used rule for a scan..
+          example: File scan
+          type: string
+    inline_response_200_11:
+      example:
+        product_id: MSCL
+        version: 4.18.0
+      properties:
+        product_id:
+          description: Product identifier.
+          example: MSCL
+          type: string
+        version:
+          description: The product version currently used.
+          example: 4.18.0
+          type: string
+    inline_response_200_12:
+      example:
+        download_progress: 100
+        eng_ver: 3.0-43
+        download_time: 2020-04-17T08:17:22.810Z
+        engine_type: av
+        eng_type: Bundled engine
+        active: true
+        eng_name: ClamAV
+        eng_id: clamav_1_linux
+        state: production
+        def_time: 2020-04-17T02:37:05.000Z
+      properties:
+        active:
+          description: If used by at least one engine
+          example: true
+          type: boolean
+        def_time:
+          description: The database definition time for this engine
+          example: 2020-04-17T02:37:05.000Z
+          type: string
+        download_progress:
+          description: The percentage progress of download
+          example: 100
+          type: integer
+        download_time:
+          description: When this engine downloaded from the update server.
+          example: 2020-04-17T08:17:22.810Z
+          type: string
+        eng_id:
+          description: Engine internal ID
+          example: clamav_1_linux
+          type: string
+        eng_name:
+          description: Engine name
+          example: ClamAV
+          type: string
+        eng_type:
+          description: Engine type in human readable form
+          example: Bundled engine
+          type: string
+        eng_ver:
+          description: Engine's version (format differs from one engine to another).
+          example: 3.0-43
+          type: string
+        engine_type:
+          description: "Engine's type: \n  * av\n  * archive\n  * filetype\n"
+          enum:
+          - av
+          - archive
+          - filetype
+          example: av
+          type: string
+        state:
+          description: |
+            Status of the engine:
+              * downloading
+              * downloaded
+              * staging
+              * production
+              * removed
+              * temporary failed
+              * permanently failed
+              * content invalid
+              * download failed
+          enum:
+          - downloading
+          - downloaded
+          - staging
+          - production
+          - removed
+          - temporary failed
+          - permanently failed
+          - content invalid
+          - download failed
+          example: production
+          type: string
+    _stat_nodes_engines:
+      description: Engine summary
+      example:
+        eng_ver: 3.0-43
+        engine_type: av
+        db_ver: "25050"
+        active: true
+        eng_name: ClamAV
+        id: clamav_1_linux
+        def_time: 2020-04-17T02:37:05.000Z
+      properties:
+        active:
+          description: If used by at least one engine
+          example: true
+          type: boolean
+        db_ver:
+          description: The database version for this engine
+          example: "25050"
+          type: string
+        def_time:
+          description: The database definition time for this engine
+          example: 2020-04-17T02:37:05.000Z
+          type: string
+        eng_name:
+          description: Engine name
+          example: ClamAV
+          type: string
+        eng_ver:
+          description: Engine's version (format differs from one engine to another).
+          example: 3.0-43
+          type: string
+        engine_type:
+          description: "Engine's type: \n  * av\n  * archive\n  * filetype\n"
+          enum:
+          - av
+          - archive
+          - filetype
+          example: av
+          type: string
+        id:
+          description: Engine internal ID
+          example: clamav_1_linux
+          type: string
+    _stat_nodes_issues:
+      example:
+        severity: warning
+        description: 1 engines are not deployed to this node
+      properties:
+        description:
+          description: Text detailing the issue.
+          example: 1 engines are not deployed to this node
+          type: string
+        severity:
+          description: How important is the reported issue.
+          example: warning
+          type: string
+    _stat_nodes_statuses:
+      description: Node status
+      example:
+        scan_queue: 24
+        address: ""
+        total_memory: 40100
+        load: 14
+        os: Linux Mint 18.3 Sylvia
+        engines:
+        - eng_ver: 3.0-43
+          engine_type: av
+          db_ver: "25050"
+          active: true
+          eng_name: ClamAV
+          id: clamav_1_linux
+          def_time: 2020-04-17T02:37:05.000Z
+        - eng_ver: 3.0-43
+          engine_type: av
+          db_ver: "25050"
+          active: true
+          eng_name: ClamAV
+          id: clamav_1_linux
+          def_time: 2020-04-17T02:37:05.000Z
+        free_disk_space: 173993443328
+        cpu_cores: 8
+        id: :69
+        issues:
+        - severity: warning
+          description: 1 engines are not deployed to this node
+        - severity: warning
+          description: 1 engines are not deployed to this node
+        version: 4.18.0
+      properties:
+        address:
+          description: The location of the Node. If local, is empty string.
+          example: ""
+          type: string
+        cpu_cores:
+          description: The number of CPU Cores allocated to this Node.
+          example: 8
+          type: integer
+        engines:
+          description: Summary of each engine status deployed on this Node.
+          items:
+            $ref: '#/components/schemas/_stat_nodes_engines'
+          type: array
+        free_disk_space:
+          description: Reported available disk on that Node (in bytes).
+          example: 173993443328
+          type: integer
+        id:
+          description: Node identfier
+          example: :69
+          type: string
+        issues:
+          description: A list of all potentials problems on that Node.
+          items:
+            $ref: '#/components/schemas/_stat_nodes_issues'
+          type: array
+        load:
+          description: Current CPU utilization on this Node (in percentage).
+          example: 14
+          type: integer
+        os:
+          description: Current used OS
+          example: Linux Mint 18.3 Sylvia
+          type: string
+        scan_queue:
+          description: Current load on the Node, how many files are in the queue
+          example: 24
+          type: integer
+        total_memory:
+          description: How much memory is allocated on this Node (in MB).
+          example: 40100
+          type: integer
+        version:
+          description: Product version
+          example: 4.18.0
+          type: string
+    inline_response_200_13:
+      example:
+        statuses:
+        - scan_queue: 24
+          address: ""
+          total_memory: 40100
+          load: 14
+          os: Linux Mint 18.3 Sylvia
+          engines:
+          - eng_ver: 3.0-43
+            engine_type: av
+            db_ver: "25050"
+            active: true
+            eng_name: ClamAV
+            id: clamav_1_linux
+            def_time: 2020-04-17T02:37:05.000Z
+          - eng_ver: 3.0-43
+            engine_type: av
+            db_ver: "25050"
+            active: true
+            eng_name: ClamAV
+            id: clamav_1_linux
+            def_time: 2020-04-17T02:37:05.000Z
+          free_disk_space: 173993443328
+          cpu_cores: 8
+          id: :69
+          issues:
+          - severity: warning
+            description: 1 engines are not deployed to this node
+          - severity: warning
+            description: 1 engines are not deployed to this node
+          version: 4.18.0
+        - scan_queue: 24
+          address: ""
+          total_memory: 40100
+          load: 14
+          os: Linux Mint 18.3 Sylvia
+          engines:
+          - eng_ver: 3.0-43
+            engine_type: av
+            db_ver: "25050"
+            active: true
+            eng_name: ClamAV
+            id: clamav_1_linux
+            def_time: 2020-04-17T02:37:05.000Z
+          - eng_ver: 3.0-43
+            engine_type: av
+            db_ver: "25050"
+            active: true
+            eng_name: ClamAV
+            id: clamav_1_linux
+            def_time: 2020-04-17T02:37:05.000Z
+          free_disk_space: 173993443328
+          cpu_cores: 8
+          id: :69
+          issues:
+          - severity: warning
+            description: 1 engines are not deployed to this node
+          - severity: warning
+            description: 1 engines are not deployed to this node
+          version: 4.18.0
+        max_node_count: 1
+        external_nodes_allowed: false
+      properties:
+        external_nodes_allowed:
+          description: Configuration option if additional external nodes could be
+            connected.
+          example: false
+          type: boolean
+        max_node_count:
+          description: Remaining available slots to connect to this instance.
+          example: 1
+          type: integer
+        statuses:
+          description: Array with a status for each attached node.
+          items:
+            $ref: '#/components/schemas/_stat_nodes_statuses'
+          type: array
+    AdminConfigUpdate_disabledupdate:
+      description: |
+        The JSON below mean that from Friday to Sunday (week starts on Monday (1), ends on Sunday (7)) from 8:00 to 16:00 you do not want to distribute packages.
+        <i>From and to is the distance in minutes from 0:00 (8:00 → 480 minutes, 16:00 → 960 minutes)<i>
+      example:
+        days: 5-7
+        from: 480
+        to: 960
+      properties:
+        days:
+          description: A particular day (index of the week) or a defined interval
+            (Fri-Sun -> 5-7)
+          example: 5-7
+          type: string
+        from:
+          description: When to start the lockdown, expressed in minutes (8 AM=480)
+          example: 480
+          type: integer
+        to:
+          description: When to end the lockdown, expressed in minutes (4 PM=960)
+          example: 960
+          type: integer
+    UserRequest_allOf:
+      properties:
+        password:
+          description: The user's password
+          example: HG&B*!C!KLEF#RH*#*(($YB
+          type: string
+    NewUserRoleRequest_rights:
+      description: A list of rights for each permission
+      example:
+        scanlog: ""
+        workflow: ""
+        scan: ""
+        rule: ""
+        update: ""
+        cert: ""
+        skip: ""
+        updatelog: ""
+        users: ""
+        agents: ""
+        configlog: ""
+        license: ""
+        external: ""
+        zone: ""
+        engines: ""
+        quarantine: ""
+        retention: ""
+      properties:
+        agents:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for Node.
+        cert:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for Certificates.
+        configlog:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for Configuration logs.
+        engines:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for Engines and Modules.
+        external:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for External actions (External
+            Scanner/Post Actions).
+        license:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the License.
+        quarantine:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the Quarantine.
+        retention:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the retention policies.
+        rule:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the workflow rules.
+        scan:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing analysis actions.
+        scanlog:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the analysis logs.
+        skip:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the Whitelist/blacklist
+            defined in the Inventory.
+        update:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the update configuration.
+        updatelog:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the update logs.
+        users:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the users.
+        workflow:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the workflow templates.
+        zone:
+          allOf:
+          - $ref: '#/components/schemas/RolePermissionObject'
+          description: What permissions are allowed for managing the network zones.
+    NewUserRoleResponse_allOf:
+      properties:
+        editable:
+          description: If the role can be altered or not.
+          example: true
+          type: boolean
+        id:
+          description: Internal used identifier
+          example: 6
+          type: integer
+      required:
+      - editable
+      - id
+    YaraSourcesObject_local_sources:
+      description: Object defining the location of the files and if this source is
+        being used.
+      example:
+        source: /mnt/yara
+        state: enabled
+      properties:
+        source:
+          description: The location (file path) of the files.
+          example: /mnt/yara
+          type: string
+        state:
+          description: Defining if this source is being used or not
+          enum:
+          - disabled
+          - enabled
+          example: enabled
+          type: string
+    YaraSourcesObject_http_sources:
+      description: Object defining the URL and if this source is being used.
+      example:
+        source: http://onlineyarasources.net/source.zip
+        state: disabled
+      properties:
+        source:
+          description: The location (URL) of the package.
+          example: http://onlineyarasources.net/source.zip
+          type: string
+        state:
+          description: Defining if this source is being used or not
+          enum:
+          - disabled
+          - enabled
+          example: disabled
+          type: string
+    AnalysisResult_process_info_post_processing:
+      description: Contains information about result of sanitization process and any
+        action done after finalizing the process using Post Actions.
+      example:
+        actions_failed: Sanitization Failed | PAscript failed
+        copy_move_destination: ""
+        actions_ran: Sanitized | PAscript
+        converted_to: ""
+        sanitization_details: ""
+        converted_destination: OPSWAT_Proactive_DLP_CCN_sanitized.pdf
+      properties:
+        actions_failed:
+          description: Empty string if no action failed or list of failed actions,
+            separated by "|".
+          example: Sanitization Failed | PAscript failed
+          type: string
+        actions_ran:
+          description: List of successful actions, separated by "|". Empty string
+            if otherwise.
+          example: Sanitized | PAscript
+          type: string
+        converted_destination:
+          description: Contains the name of the sanitized file.
+          example: OPSWAT_Proactive_DLP_CCN_sanitized.pdf
+          type: string
+        converted_to:
+          description: Contains target type name of sanitization.
+          example: ""
+          type: string
+        copy_move_destination:
+          description: Contains target type name of sanitization.
+          example: ""
+          type: string
+        sanitization_details:
+          allOf:
+          - $ref: '#/components/schemas/DeepCDRDetails'
+          description: Contains target type name of sanitization.
+    AnalysisResult_process_info:
+      description: Processing information
+      example:
+        queue_time: 321
+        result: Blocked
+        verdicts:
+        - Sensitive Data Found
+        processing_time: 4804
+        blocked_reason: Sensitive Data Found
+        profile: File process
+        progress_percentage: 100
+        outdated_data:
+        - enginedefinition
+        - configuration
+        - sanitization
+        user_agent: webscan
+        post_processing:
+          actions_failed: Sanitization Failed | PAscript failed
+          copy_move_destination: ""
+          actions_ran: Sanitized | PAscript
+          converted_to: ""
+          sanitization_details: ""
+          converted_destination: OPSWAT_Proactive_DLP_CCN_sanitized.pdf
+        file_type_skipped_scan: false
+        username: LOCAL/admin
+      properties:
+        blocked_reason:
+          description: Provides the reason why the file is blocked (if so).
+          example: Sensitive Data Found
+          type: string
+        file_type_skipped_scan:
+          description: Indicates if the input file's detected type was configured
+            to skip scanning.
+          example: false
+          type: boolean
+        outdated_data:
+          description: "array of flags - if occur - describing outdated data in the\
+            \ result, these can be\n  * enginedefinitions: at least one of the AV\
+            \ engines the item was scanned with has a newer definition database\n\
+            \  * configuration: the process' rule - or any item used by the rule -\
+            \ was modified since the item was processed\n  * sanitization: if item\
+            \ was sanitized this flag notifies that the sanitization information regarding\
+            \ this result is outdated, meaning the sanitized item is no longer available\
+            \              \n"
+          example:
+          - enginedefinition
+          - configuration
+          - sanitization
+          items:
+            enum:
+            - enginedefinition
+            - configuration
+            - sanitization
+            type: string
+          type: array
+        processing_time:
+          description: Total time elapsed during processing file on the node (in milliseconds).
+          example: 4804
+          type: integer
+        profile:
+          description: The used rule name.
+          example: File process
+          type: string
+        progress_percentage:
+          description: Percentage of processing completed (from 1-100).
+          example: 100
+          type: integer
+        queue_time:
+          description: Total time elapsed while the file waits in the queue (in milliseconds).
+          example: 321
+          type: integer
+        result:
+          description: The final result of processing the file (Allowed / Blocked
+            / Processing).
+          example: Blocked
+          type: string
+        user_agent:
+          description: Identifier for the REST Client that calls the API.
+          example: webscan
+          type: string
+        username:
+          description: User identifier who submitted scan request earlier.
+          example: LOCAL/admin
+          type: string
+        verdicts:
+          description: Aggregated list of potential issues.
+          example:
+          - Sensitive Data Found
+          items:
+            type: string
+          type: array
+        post_processing:
+          $ref: '#/components/schemas/AnalysisResult_process_info_post_processing'
+    BatchResponse_batch_files_process_info:
+      description: The analysis summary
+      example:
+        result: Blocked
+        verdicts:
+        - Infected
+        blocked_reason: Infected
+        progress_percentage: 100
+      properties:
+        blocked_reason:
+          description: Provides the reason why the file is blocked (if so).
+          example: Infected
+          type: string
+        progress_percentage:
+          description: Percentage of processing completed (from 1-100).
+          example: 100
+          type: integer
+        result:
+          description: The final result of processing the file (Allowed / Blocked
+            / Processing).
+          example: Blocked
+          type: string
+        verdicts:
+          description: Aggregated list of potential issues.
+          example:
+          - Infected
+          items:
+            type: string
+          type: array
+    BatchResponse_batch_files_files_in_batch:
+      example:
+        scan_all_result_a: Infected
+        scanned_with: 4
+        data_id: 24c8b5dadd48445989ac3431544fdc34
+        detected_by: 4
+        process_info:
+          result: Blocked
+          verdicts:
+          - Infected
+          blocked_reason: Infected
+          progress_percentage: 100
+        file_type: application/octet-stream
+        progress_percentage: 100
+        scan_all_result_i: 1
+        display_name: eicar.com
+        file_size: 68
+        file_type_description: EICAR virus test files
+      properties:
+        data_id:
+          description: Unique identifer for the file.
+          example: 24c8b5dadd48445989ac3431544fdc34
+          type: string
+        detected_by:
+          description: Total number of engines that detected this file.
+          example: 4
+          type: integer
+        display_name:
+          description: The filename reported via `filename` header.
+          example: eicar.com
+          type: string
+        file_size:
+          description: Total file size in bytes.
+          example: 68
+          type: integer
+        file_type:
+          description: The filetype using mimetype.
+          example: application/octet-stream
+          type: string
+        file_type_description:
+          description: The filetype in human readable format.
+          example: EICAR virus test files
+          type: string
+        process_info:
+          $ref: '#/components/schemas/BatchResponse_batch_files_process_info'
+        progress_percentage:
+          description: Track analysis progress until reaches 100.
+          example: 100
+          type: integer
+        scan_all_result_a:
+          allOf:
+          - $ref: '#/components/schemas/ProcessingResultsStringEnum'
+          description: The overall scan result as string
+          example: Infected
+        scan_all_result_i:
+          allOf:
+          - $ref: '#/components/schemas/ProcessingResultsIndexEnum'
+          description: The overall scan result as index in the Processing Results
+            table.
+          example: 1
+        scanned_with:
+          description: The total number of engines used to analyze this file.
+          example: 4
+          type: integer
+    BatchResponse_batch_files:
+      description: aaaaa
+      example:
+        batch_count: 4
+        first_index: 0
+        files_in_batch:
+        - scan_all_result_a: Infected
+          scanned_with: 4
+          data_id: 24c8b5dadd48445989ac3431544fdc34
+          detected_by: 4
+          process_info:
+            result: Blocked
+            verdicts:
+            - Infected
+            blocked_reason: Infected
+            progress_percentage: 100
+          file_type: application/octet-stream
+          progress_percentage: 100
+          scan_all_result_i: 1
+          display_name: eicar.com
+          file_size: 68
+          file_type_description: EICAR virus test files
+        - scan_all_result_a: Infected
+          scanned_with: 4
+          data_id: 24c8b5dadd48445989ac3431544fdc34
+          detected_by: 4
+          process_info:
+            result: Blocked
+            verdicts:
+            - Infected
+            blocked_reason: Infected
+            progress_percentage: 100
+          file_type: application/octet-stream
+          progress_percentage: 100
+          scan_all_result_i: 1
+          display_name: eicar.com
+          file_size: 68
+          file_type_description: EICAR virus test files
+        page_size: 50
+      properties:
+        batch_count:
+          description: How many files/entries in the batch.
+          example: 4
+          type: integer
+        files_in_batch:
+          description: The list of files in this batch.
+          items:
+            $ref: '#/components/schemas/BatchResponse_batch_files_files_in_batch'
+          type: array
+        first_index:
+          description: The starting index in the batch. Used for pagination.
+          example: 0
+          type: integer
+        page_size:
+          description: The number of entries per page.
+          example: 50
+          type: integer
+    BatchResponse_process_info:
+      description: Overall batch process result
+      example:
+        result: Blocked
+        blocked_reason: Infected
+        profile: File process
+        user_agent: mdicapserver
+        file_type_skipped_scan: false
+        username: LOCAL/admin
+      properties:
+        blocked_reason:
+          description: Provides the reason why the file is blocked (if so).
+          example: Infected
+          type: string
+        file_type_skipped_scan:
+          description: Indicates if the input file's detected type was configured
+            to skip scanning.
+          example: false
+          type: boolean
+        profile:
+          description: The used rule name.
+          example: File process
+          type: string
+        result:
+          description: The final result of processing the file (Allowed / Blocked
+            / Processing).
+          example: Blocked
+          type: string
+        user_agent:
+          description: Identifier for the REST Client that calls the API.
+          example: mdicapserver
+          type: string
+        username:
+          description: User identifier who submitted scan request earlier.
+          example: LOCAL/admin
+          type: string
+    BatchResponse_scan_results:
+      description: Metascan analysis result.
+      example:
+        scan_all_result_a: Infected
+        start_time: 2020-03-12T08:37:05.427Z
+        batch_id: b7cc760038324b02908a5c111cb1563d
+        scan_all_result_i: 1
+        total_time: 18403
+        total_avs: 0
+      properties:
+        batch_id:
+          description: The batch unique identifer
+          example: b7cc760038324b02908a5c111cb1563d
+          type: string
+        scan_all_result_a:
+          allOf:
+          - $ref: '#/components/schemas/ProcessingResultsStringEnum'
+          description: The overall scan result as string
+          example: Infected
+        scan_all_result_i:
+          allOf:
+          - $ref: '#/components/schemas/ProcessingResultsIndexEnum'
+          description: The overall scan result as index in the Processing Results
+            table.
+          example: 1
+        start_time:
+          description: Timestamp when the scanning process starts.
+          example: 2020-03-12T08:37:05.427Z
+          type: string
+        total_avs:
+          description: Total number of scanning engines used as part of this analysis.
+          example: 0
+          type: integer
+        total_time:
+          description: Total time elapsed during scan (in milliseconds).
+          example: 18403
+          type: integer
+    DLPResponse_dlp_info_hits_ccn:
+      example:
+        hits:
+        - '{}'
+        - '{}'
+        display_name: Credit Card Number
+      properties:
+        display_name:
+          description: Credit Card Number, Social Security Number, or in case of RegEx,
+            the name of the rule that has been given by the user
+          example: Credit Card Number
+          type: string
+        hits:
+          description: A list of detections that matched this rule/pattern.
+          items:
+            allOf:
+            - $ref: '#/components/schemas/DLPRuleMatchResult'
+            type: object
+          type: array
+    DLPResponse_dlp_info_hits:
+      description: "Detailed results that contains as key the type of matched rule:\
+        \ \n  * ccn (credit card number), \n  * ssn (social security number), \n \
+        \ * regex_<index> (regular expression with an index in order to differentiate\
+        \ the RegEx rules if there are more.)\n"
+      example:
+        ccn:
+          hits:
+          - '{}'
+          - '{}'
+          display_name: Credit Card Number
+      properties:
+        ccn:
+          $ref: '#/components/schemas/DLPResponse_dlp_info_hits_ccn'
+    DLPResponse_dlp_info_metadata_removal:
+      description: Result of metadata removal.
+      example:
+        result: not removed
+      properties:
+        result:
+          description: |
+            Result of the metadata removal process, possible values: * `removed` * `not removed` * `failed to remove`
+          enum:
+          - removed
+          - not removed
+          - failed to remove
+          example: not removed
+          type: string
+    DLPResponse_dlp_info_redact:
+      description: Result of redaction process.
+      example:
+        result: redacted
+      properties:
+        result:
+          description: |
+            Result of the redaction process, possible values: * `redacted` * `not redacted` * `failed to redact`
+          enum:
+          - redacted
+          - not redacted
+          - failed to redact
+          example: redacted
+          type: string
+    DLPResponse_dlp_info_watermark:
+      description: Result of watermarking process.
+      example:
+        result: added
+      properties:
+        result:
+          description: |
+            Result of the watermarking process, possible values: * `added` * `not added` * `failed to add`
+          enum:
+          - added
+          - not added
+          - failed to add
+          example: added
+          type: string
+    DLPResponse_dlp_info:
+      description: Information on matched sensitive data
+      example:
+        hits:
+          ccn:
+            hits:
+            - '{}'
+            - '{}'
+            display_name: Credit Card Number
+        severity: 0
+        filename: OPSWAT_Proactive_DLP_CCN_proactive-dlp-processed_by_OPSWAT_MetaDefender_8101abae27be4d63859c55d9e0ed0135.pdf
+        watermark:
+          result: added
+        redact:
+          result: redacted
+        verdict: 1
+        certainty: High
+        metadata_removal:
+          result: not removed
+        errors:
+          redact: File structure invalid.
+      properties:
+        certainty:
+          description: |
+            Describes how certain the hit is, possible values:
+              * `Very Low`
+              * `Low`
+              * `Medium`
+              * `High`
+              * `Very High`
+          enum:
+          - Very Low
+          - Low
+          - Medium
+          - High
+          - Very High
+          example: High
+          type: string
+        errors:
+          description: |
+            A  list of error objects (empty if no errors happened), each error object contains following keys:
+              * `scan`: scan related error description
+              * `redact`: redaction related error description
+              * `watermark`: watermark related error description
+              * `metadata_removal`: metadata removal related error description
+          example:
+            redact: File structure invalid.
+          type: object
+        filename:
+          description: Output processed file name (pre-configured on engine settings
+            under Core's worflow rule)
+          example: OPSWAT_Proactive_DLP_CCN_proactive-dlp-processed_by_OPSWAT_MetaDefender_8101abae27be4d63859c55d9e0ed0135.pdf
+          type: string
+        hits:
+          $ref: '#/components/schemas/DLPResponse_dlp_info_hits'
+        metadata_removal:
+          $ref: '#/components/schemas/DLPResponse_dlp_info_metadata_removal'
+        redact:
+          $ref: '#/components/schemas/DLPResponse_dlp_info_redact'
+        severity:
+          description: |
+            (NOTE: this field is deprecated): represents the severity of the data loss, possible values:
+              * `0` - Certainly is data loss
+              * `1` - Might be data loss
+          enum:
+          - 0
+          - 1
+          example: 0
+          type: integer
+        verdict:
+          description: |
+            The overall result for the scanned file. It can be
+              | index         | status                       |
+              |---------------|------------------------------|
+              | 0             | Clean                        |
+              | 1             | Found matched data           |
+              | 2             | Suspicious                   |
+              | 3             | Failed                       |
+              | 4             | Not scanned                  |
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          example: 1
+          type: integer
+        watermark:
+          $ref: '#/components/schemas/DLPResponse_dlp_info_watermark'
+    DeepCDRDetails_details:
+      properties:
+        action:
+          description: The type of action that was performed
+          enum:
+          - sanitized
+          - removed
+          example: sanitized
+          type: string
+        object_name:
+          description: The object type that was sanitized/removed.
+          example: XML content
+          type: string
+        count:
+          description: The number of objects that were sanitized/removed.
+          example: 1
+          type: integer
+        object_details:
+          description: Additional information about the sanitized object
+          example: |
+            "<ddeLink xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" ddeService=\"calc\" ddeTopic=\"topic\" xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">\r\n  <ddeItems>\r\n    <ddeItem name=\"_xlbgnm.A3\" advise=\"1\" />\r\n    <ddeItem name=\"StdDocumentName\" ole=\"1\" advise=\"1\" />\r\n  </ddeItems>\r\n</ddeLink>"
+          type: string
+        file_name:
+          description: If an embedded file was sanitized.
+          example: Microsoft_Excel_97-2003_Worksheet.xls
+          type: string
+      required:
+      - action
+      - object_name
+    MetascanReport_scan_details:
+      description: Scan results for each antivirus engine. The key is the name of
+        the antivirus engine and the value is the result of the antivirus engine
+      example:
+        ClamAV:
+          threat_found: ""
+          wait_time: 3
+          location: local
+          eng_id: clamav_1_windows
+          scan_time: 336
+          def_time: 2020-03-11T11:08:00.000Z
+          scan_result_i: 0
+      properties:
+        ClamAV:
+          $ref: '#/components/schemas/AVEngineScanReport'
+    VulnerabilityResponse_result_detected_product_product:
+      description: Product data object
+      example:
+        name: Adobe Flash Player
+        id: 104
+      properties:
+        id:
+          description: The OPSWAT product id
+          example: 104
+          type: integer
+        name:
+          description: The product name
+          example: Adobe Flash Player
+          type: string
+    VulnerabilityResponse_result_detected_product_vendor:
+      description: Vendor data object
+      example:
+        name: Adobe Systems Inc.
+        id: 91
+      properties:
+        id:
+          description: The OPSWAT vendor id
+          example: 91
+          type: integer
+        name:
+          description: The vendor name
+          example: Adobe Systems Inc.
+          type: string
+    VulnerabilityResponse_result_detected_product_version_data:
+      description: Object containing detailed patch information
+      example:
+        count_behind: 65
+        version: 25.0.0.149
+        feed_id: 200005
+      properties:
+        count_behind:
+          description: The number of patches behind of the installed product
+          example: 65
+          type: integer
+        feed_id:
+          description: The remote feed ID used to determine patch level
+          example: 200005
+          type: integer
+        version:
+          description: The current version of the product in the remote feed
+          example: 25.0.0.149
+          type: string
+    VulnerabilityResponse_result_detected_product:
+      description: Detected products object is present if input hash has been found
+        to correspond to verified product
+      example:
+        severity: critical
+        product:
+          name: Adobe Flash Player
+          id: 104
+        signature: 107
+        vendor:
+          name: Adobe Systems Inc.
+          id: 91
+        has_vulnerability: true
+        remediation_link: http://get.adobe.com/flashplayer/
+        is_current: false
+        version: 20.0.0.235
+        version_data:
+          count_behind: 65
+          version: 25.0.0.149
+          feed_id: 200005
+        sig_name: Adobe Flash Player
+      properties:
+        has_vulnerability:
+          description: Indicates whether any vulnerabilities have been associated
+            with the particular product
+          example: true
+          type: boolean
+        is_current:
+          description: True if this product's patch level is current, defaults to
+            true
+          example: false
+          type: boolean
+        product:
+          $ref: '#/components/schemas/VulnerabilityResponse_result_detected_product_product'
+        remediation_link:
+          description: A link where product updates or patches can be obtained
+          example: http://get.adobe.com/flashplayer/
+          type: string
+        severity:
+          description: "String description of Severity level: \n  * `low` \n  * `moderate`\n\
+            \  * `important`\n  * `critical`\n  * `not_available`\n  * `unknown`\n"
+          enum:
+          - low
+          - moderate
+          - important
+          - critical
+          - not_available
+          - unknown
+          example: critical
+          type: string
+        sig_name:
+          description: Product signature descriptor
+          example: Adobe Flash Player
+          type: string
+        signature:
+          description: OPSWAT signature id
+          example: 107
+          type: integer
+        vendor:
+          $ref: '#/components/schemas/VulnerabilityResponse_result_detected_product_vendor'
+        version:
+          description: The installed product version
+          example: 20.0.0.235
+          type: string
+        version_data:
+          $ref: '#/components/schemas/VulnerabilityResponse_result_detected_product_version_data'
+    VulnerabilityResponse_result_details_cvss:
+      description: A set of cvss severity information
+      example:
+        confidentiality-impact: COMPLETE
+        integrity-impact: COMPLETE
+        score: "10.0"
+        generated-on-epoch: "1451411824"
+        access-vector: NETWORK
+        availability-impact: ""
+        access-complexity: LOW
+        source: http://nvd.nist.gov
+        authentication: NONE
+      properties:
+        access-complexity:
+          description: A CVSS access-complexity descriptor
+          example: LOW
+          type: string
+        access-vector:
+          description: A CVSS access-vector descriptor
+          example: NETWORK
+          type: string
+        authentication:
+          description: A CVSS authentication descriptor
+          example: NONE
+          type: string
+        availability-impact:
+          description: A CVSS availability impact descriptor
+          example: ""
+          type: string
+        confidentiality-impact:
+          description: A CVSS confidentiality impact descriptor
+          example: COMPLETE
+          type: string
+        generated-on-epoch:
+          description: An epoch timestamp indicating CVSS generation time
+          example: "1451411824"
+          type: string
+        integrity-impact:
+          description: A CVSS integrity impact descriptor
+          example: COMPLETE
+          type: string
+        score:
+          description: A CVSS 10-point severity score
+          example: "10.0"
+          type: string
+        source:
+          description: A CVSS source descriptor
+          example: http://nvd.nist.gov
+          type: string
+    VulnerabilityResponse_result_details:
+      description: A set of optional vulnerability details
+      example:
+        cwe: CWE-119
+        cve: CVE-2015-8459
+        references:
+        - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+        - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+        cpe: cpe:/a:adobe:flash player
+        last_modified_epoch: "1487300348"
+        published-epoch: "1451347140"
+        cvss:
+          confidentiality-impact: COMPLETE
+          integrity-impact: COMPLETE
+          score: "10.0"
+          generated-on-epoch: "1451411824"
+          access-vector: NETWORK
+          availability-impact: ""
+          access-complexity: LOW
+          source: http://nvd.nist.gov
+          authentication: NONE
+      properties:
+        cpe:
+          description: A CPE product reference
+          example: cpe:/a:adobe:flash player
+          type: string
+        cve:
+          description: A CVE identification string
+          example: CVE-2015-8459
+          type: string
+        cvss:
+          $ref: '#/components/schemas/VulnerabilityResponse_result_details_cvss'
+        cwe:
+          description: A CWE group identification string
+          example: CWE-119
+          type: string
+        last_modified_epoch:
+          description: An epoch timestamp indicating source last update time
+          example: "1487300348"
+          type: string
+        published-epoch:
+          description: An epoch timestamp indicating source publishing time
+          example: "1451347140"
+          type: string
+        references:
+          description: An array of external reference links
+          items:
+            example: http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+            type: string
+          type: array
+    VulnerabilityResponse_result_vulnerabilites:
+      example:
+        severity: CRITICAL
+        static_id: 20158459
+        severity_index: 5
+        description: |
+          Adobe Flash Player before 18.0.0.324 and 19.x and 20.x before 20.0.0.267 on Windows and OS X and before 11.2.202.559 on Linux, Adobe AIR before 20.0.0.233, Adobe AIR SDK before 20.0.0.233, and Adobe AIR SDK & Compiler before 20.0.0.233 allow attackers to execute arbitrary code or cause a denial of service (memory corruption) via unspecified vectors, a different vulnerability than CVE-2015-8460, CVE-2015-8636, and CVE-2015-8645.
+        details:
+          cwe: CWE-119
+          cve: CVE-2015-8459
+          references:
+          - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+          - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+          cpe: cpe:/a:adobe:flash player
+          last_modified_epoch: "1487300348"
+          published-epoch: "1451347140"
+          cvss:
+            confidentiality-impact: COMPLETE
+            integrity-impact: COMPLETE
+            score: "10.0"
+            generated-on-epoch: "1451411824"
+            access-vector: NETWORK
+            availability-impact: ""
+            access-complexity: LOW
+            source: http://nvd.nist.gov
+            authentication: NONE
+      properties:
+        description:
+          description: A text description of the specific vulnerability
+          example: |
+            Adobe Flash Player before 18.0.0.324 and 19.x and 20.x before 20.0.0.267 on Windows and OS X and before 11.2.202.559 on Linux, Adobe AIR before 20.0.0.233, Adobe AIR SDK before 20.0.0.233, and Adobe AIR SDK & Compiler before 20.0.0.233 allow attackers to execute arbitrary code or cause a denial of service (memory corruption) via unspecified vectors, a different vulnerability than CVE-2015-8460, CVE-2015-8636, and CVE-2015-8645.
+          type: string
+        details:
+          $ref: '#/components/schemas/VulnerabilityResponse_result_details'
+        severity:
+          description: |
+            String description of Severity level: 'low', 'moderate', 'important', 'critical', 'not_available', 'unknown'
+          example: CRITICAL
+          type: string
+        severity_index:
+          description: A 5 point scale numerical description of Severity level with
+            5 being greatest and 0 being unknown
+          example: 5
+          type: integer
+        static_id:
+          description: An OPSWAT identifier for the vulnerability
+          example: 20158459
+          type: integer
+    VulnerabilityResponse_result:
+      description: The result information provided by the OESIS Framework
+      example:
+        detected_product:
+          severity: critical
+          product:
+            name: Adobe Flash Player
+            id: 104
+          signature: 107
+          vendor:
+            name: Adobe Systems Inc.
+            id: 91
+          has_vulnerability: true
+          remediation_link: http://get.adobe.com/flashplayer/
+          is_current: false
+          version: 20.0.0.235
+          version_data:
+            count_behind: 65
+            version: 25.0.0.149
+            feed_id: 200005
+          sig_name: Adobe Flash Player
+        vulnerabilites:
+        - severity: CRITICAL
+          static_id: 20158459
+          severity_index: 5
+          description: |
+            Adobe Flash Player before 18.0.0.324 and 19.x and 20.x before 20.0.0.267 on Windows and OS X and before 11.2.202.559 on Linux, Adobe AIR before 20.0.0.233, Adobe AIR SDK before 20.0.0.233, and Adobe AIR SDK & Compiler before 20.0.0.233 allow attackers to execute arbitrary code or cause a denial of service (memory corruption) via unspecified vectors, a different vulnerability than CVE-2015-8460, CVE-2015-8636, and CVE-2015-8645.
+          details:
+            cwe: CWE-119
+            cve: CVE-2015-8459
+            references:
+            - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+            - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+            cpe: cpe:/a:adobe:flash player
+            last_modified_epoch: "1487300348"
+            published-epoch: "1451347140"
+            cvss:
+              confidentiality-impact: COMPLETE
+              integrity-impact: COMPLETE
+              score: "10.0"
+              generated-on-epoch: "1451411824"
+              access-vector: NETWORK
+              availability-impact: ""
+              access-complexity: LOW
+              source: http://nvd.nist.gov
+              authentication: NONE
+        - severity: CRITICAL
+          static_id: 20158459
+          severity_index: 5
+          description: |
+            Adobe Flash Player before 18.0.0.324 and 19.x and 20.x before 20.0.0.267 on Windows and OS X and before 11.2.202.559 on Linux, Adobe AIR before 20.0.0.233, Adobe AIR SDK before 20.0.0.233, and Adobe AIR SDK & Compiler before 20.0.0.233 allow attackers to execute arbitrary code or cause a denial of service (memory corruption) via unspecified vectors, a different vulnerability than CVE-2015-8460, CVE-2015-8636, and CVE-2015-8645.
+          details:
+            cwe: CWE-119
+            cve: CVE-2015-8459
+            references:
+            - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+            - http://lists.opensuse.org/opensuse-security-announce/2015-12/msg00045.html
+            cpe: cpe:/a:adobe:flash player
+            last_modified_epoch: "1487300348"
+            published-epoch: "1451347140"
+            cvss:
+              confidentiality-impact: COMPLETE
+              integrity-impact: COMPLETE
+              score: "10.0"
+              generated-on-epoch: "1451411824"
+              access-vector: NETWORK
+              availability-impact: ""
+              access-complexity: LOW
+              source: http://nvd.nist.gov
+              authentication: NONE
+        code: 0
+        method: 50700
+        timing: 48
+        hash: B428501D1FAD1BA14AA2FC3F9B5F051EC8721EA2
+        timestamp: "1493020752"
+      properties:
+        code:
+          description: The result code for vulnerability check, 0 means a successful
+            check
+          example: 0
+          type: integer
+        hash:
+          description: The file's SHA1 hash value
+          example: B428501D1FAD1BA14AA2FC3F9B5F051EC8721EA2
+          type: string
+        method:
+          description: The method used by OESIS Framework, it should be 50700 every
+            time.
+          enum:
+          - 50700
+          example: 50700
+          type: integer
+        timestamp:
+          description: Timestamp of the request issued
+          example: "1493020752"
+          type: string
+        timing:
+          description: The vulnerability check's duration in milliseconds
+          example: 48
+          type: integer
+        detected_product:
+          $ref: '#/components/schemas/VulnerabilityResponse_result_detected_product'
+        vulnerabilites:
+          description: A list of specific vulnerabilities
+          items:
+            $ref: '#/components/schemas/VulnerabilityResponse_result_vulnerabilites'
+          type: array
+  securitySchemes:
+    apikey:
+      description: |
+        Generated `session_id` from [Login](#operation/userLogin) call can be used as an `apikey` for API calls that require authentication.
+      in: header
+      name: apikey
+      type: apiKey
+x-tagGroups:
+- name: User
+  tags:
+  - auth
+- name: File Analysis
+  tags:
+  - analysis
+  - batch
+- name: Admin
+  tags:
+  - admin
+  - config
+  - yara
+  - engines
+  - stats
+- name: Models
+  tags:
+  - analysisResultModel
+  - batchResultModel
+  - fileInfoModel
+  - deepCDRReportModel
+  - metascanReportModel
+  - dlpReportModel
+  - vulnReportModel

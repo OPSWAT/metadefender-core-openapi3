@@ -1,0 +1,46 @@
+{
+  "name": "meta_defender_core",
+  "version": "v4.18.0",
+  "description": "_Developer_GuideThis_is_the_API_documentation_for_MetaDefender_Core_Public_API___If_you_would_like_to_evaluate_or_have_any_questions_about_this_documentation_please_contact_us_via_our__Contact_Us_https__opswat_com_contact_form___How_to_Interact_with_MetaDefender_Core_using_RESTBeginning_with_MetaDefender_Core_4_x_OPSWAT_recommends_using_the_JSON_based_REST_API__The_available_methods_are_documented_below___Note__MetaDefender_API_doesnt_support_chunk_upload_however_is_recommended_to_stream_the_files_to_MetaDefender_as_part_of_the_upload_process______File_Analysis_Process__MetaDefenders_main_functionality_is_to_analyze_large_volumes_with_a_high_throughput__Depending_on_the_configuration_and_licensed_technologies_the_analysis_times_can_vary____Below_is_a_brief_description_of_the_API_integration_flow__1__Upload_a_file_for_analysis__POST__file_which_returns_the_data_id__File_Analysis_operation_fileAnalysisPost____________Note__The_performance_depends_on_____________number_of_nodes__scaling_______number_of_engines_per_node_______type_of_file_to_be_scanned_______Metadefender_Core_and_nodes_hardware____2__You_have_2_ways_to_retrieve_the_analysis_report_______Polling_Fetch_the_result_with_previously_received_data_id__GET__file_data_id_resource_until_scan_result_belonging_to_data_id_doesnt_reach_the_100_percent_progress_percentage____Fetch_processing_result_operation_userLogin________Note__Too_many_data_id_requests_can_reduce_performance__It_is_enough_to_just_check_every_few_hundred_milliseconds___________Callbackurl_Specify_a_callbackurl_that_will_be_called_once_the_analysis_is_complete____3__Retrieve_the_analysis_results_anytime_after_the_analysis_is_completed_with_hash_for_files__md5_sha1_sha256_by_calling__Fetch_processing_result_operation_userLogin________The_hash_can_be_found_in_the_scan_results__4__Retrieve_processed_file__sanitized_redacted_watermarked_etc__after_the_analysis_is_complete________Note__Based_on_the_configured_retention_policy_the_files_might_be_available_for_retrieval_at_a_later_time_____OPSWAT_provides_some_sample_codes_on__GitHub_https__github_com_OPSWAT_to_make_it_easier_to_understand_how_the_MetaDefender_REST_API_works_",
+  "license": "Apache 2.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src -d dist",
+    "prepack": "npm run build",
+    "test": "mocha --require @babel/register --recursive"
+  },
+  "browser": {
+    "fs": false
+  },
+  "dependencies": {
+    "@babel/cli": "^7.0.0",
+    "superagent": "3.7.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/plugin-proposal-decorators": "^7.0.0",
+    "@babel/plugin-proposal-do-expressions": "^7.0.0",
+    "@babel/plugin-proposal-export-default-from": "^7.0.0",
+    "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
+    "@babel/plugin-proposal-function-bind": "^7.0.0",
+    "@babel/plugin-proposal-function-sent": "^7.0.0",
+    "@babel/plugin-proposal-json-strings": "^7.0.0",
+    "@babel/plugin-proposal-logical-assignment-operators": "^7.0.0",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.0.0",
+    "@babel/plugin-proposal-numeric-separator": "^7.0.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/plugin-proposal-pipeline-operator": "^7.0.0",
+    "@babel/plugin-proposal-throw-expressions": "^7.0.0",
+    "@babel/plugin-syntax-dynamic-import": "^7.0.0",
+    "@babel/plugin-syntax-import-meta": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/register": "^7.0.0",
+    "expect.js": "^0.3.1",
+    "mocha": "^5.2.0",
+    "sinon": "^7.2.0"
+  },
+  "files": [
+    "dist"
+  ]
+}
