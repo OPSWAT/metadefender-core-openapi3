@@ -33,7 +33,7 @@ properties:
         items:
           type: string
           enum:
-            - enginedefinition
+            - enginedefinitions
             - configuration
             - sanitization
         example:
