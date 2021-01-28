@@ -37,7 +37,7 @@ properties:
             - configuration
             - sanitization
         example:
-          - enginedefinition
+          - enginedefinitions
           - configuration
           - sanitization
       processing_time:
